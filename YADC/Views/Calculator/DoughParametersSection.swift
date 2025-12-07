@@ -1,0 +1,53 @@
+//
+//  DoughParametersSection.swift
+//  YADC
+//
+//  Created by Francesco Balestrieri on 7.12.2025.
+//
+
+import SwiftUI
+
+struct DoughParametersSection: View {
+    @Environment(RecipeViewModel.self) private var viewModel
+
+    var body: some View {
+        @Bindable var vm = viewModel
+
+        Section("Dough") {
+            Stepper("Number of balls: \(viewModel.recipe.numberOfBalls)",
+                    value: Binding(
+                        get: { viewModel.recipe.numberOfBalls },
+                        set: { viewModel.updateNumberOfBalls($0) }
+                    ),
+                    in: 1...100)
+
+            HStack {
+                Text("Weight per ball")
+                Spacer()
+                TextField("Weight", value: Binding(
+                    get: { viewModel.displayWeight(viewModel.recipe.weightPerBall) },
+                    set: { viewModel.updateWeightPerBall(viewModel.weightFromInput($0)) }
+                ), format: .number)
+                .keyboardType(.decimalPad)
+                .multilineTextAlignment(.trailing)
+                .frame(width: 80)
+                Text(viewModel.weightUnit)
+                    .foregroundStyle(.secondary)
+            }
+
+            HStack {
+                Text("Total dough weight")
+                Spacer()
+                Text("\(viewModel.displayWeight(viewModel.recipe.totalDoughWeight).weightFormatted) \(viewModel.weightUnit)")
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+}
+
+#Preview {
+    Form {
+        DoughParametersSection()
+    }
+    .environment(RecipeViewModel())
+}

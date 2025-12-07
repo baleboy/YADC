@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct YADCApp: App {
+    @State private var viewModel = RecipeViewModel()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(viewModel)
         }
     }
 }
