@@ -22,7 +22,7 @@ struct CalculatorView: View {
             }
             .navigationTitle("Dough Calculator")
             .sheet(isPresented: $showingAddIngredient) {
-                AddIngredientView()
+                AddIngredientView(mode: viewModel.mode, weightUnit: viewModel.weightUnit)
             }
         }
     }

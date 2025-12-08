@@ -87,6 +87,12 @@ final class RecipeViewModel {
         recalculateWeights()
     }
 
+    func addIngredientByWeight(name: String, weight: Double) {
+        let ingredient = Ingredient(name: name, weight: weight)
+        recipe.ingredients.append(ingredient)
+        recalculateFromWeights()
+    }
+
     func removeIngredient(id: UUID) {
         guard let ingredient = recipe.ingredients.first(where: { $0.id == id }),
               !ingredient.isCore else { return }
