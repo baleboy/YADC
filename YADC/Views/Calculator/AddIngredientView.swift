@@ -40,7 +40,7 @@ struct AddIngredientView: View {
                     HStack {
                         Text("Percentage")
                         Spacer()
-                        TextField("", value: $percentage, format: .number)
+                        TextField("", value: $percentage, format: .number.precision(.fractionLength(0...1)))
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 60)
@@ -58,7 +58,7 @@ struct AddIngredientView: View {
                     HStack {
                         Text("Weight")
                         Spacer()
-                        TextField("", value: $weight, format: .number)
+                        TextField("", value: $weight, format: .number.precision(.fractionLength(0...1)))
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 60)

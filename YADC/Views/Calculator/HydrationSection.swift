@@ -19,7 +19,7 @@ struct HydrationSection: View {
                     TextField("Hydration", value: Binding(
                         get: { viewModel.recipe.hydration },
                         set: { viewModel.updateHydration($0) }
-                    ), format: .number)
+                    ), format: .number.precision(.fractionLength(0...1)))
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
                     .frame(width: 60)

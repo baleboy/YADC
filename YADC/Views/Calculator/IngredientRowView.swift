@@ -38,7 +38,7 @@ struct IngredientRowView: View {
             TextField("", value: Binding(
                 get: { ingredient.percentage },
                 set: { viewModel.updateIngredientPercentage(id: ingredient.id, percentage: $0) }
-            ), format: .number)
+            ), format: .number.precision(.fractionLength(0...1)))
             .keyboardType(.decimalPad)
             .multilineTextAlignment(.trailing)
             .frame(width: 50)
@@ -60,7 +60,7 @@ struct IngredientRowView: View {
         TextField("", value: Binding(
             get: { viewModel.displayWeight(ingredient.weight) },
             set: { viewModel.updateIngredientWeight(id: ingredient.id, weight: viewModel.weightFromInput($0)) }
-        ), format: .number)
+        ), format: .number.precision(.fractionLength(0...1)))
         .keyboardType(.decimalPad)
         .multilineTextAlignment(.trailing)
         .frame(width: 60)

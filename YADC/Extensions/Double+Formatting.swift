@@ -25,12 +25,6 @@ extension Double {
     }
 
     var weightFormatted: String {
-        if self >= 100 {
-            return String(format: "%.0f", self)
-        } else if self >= 10 {
-            return String(format: "%.1f", self)
-        } else {
-            return String(format: "%.2f", self)
-        }
+        String(format: "%.1f", self)
     }
 }
