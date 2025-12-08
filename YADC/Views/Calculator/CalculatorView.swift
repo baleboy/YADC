@@ -20,6 +20,7 @@ struct CalculatorView: View {
                 IngredientsListView(showingAddIngredient: $showingAddIngredient)
                 PreFermentSection()
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Dough Calculator")
             .sheet(isPresented: $showingAddIngredient) {
                 AddIngredientView(mode: viewModel.mode, weightUnit: viewModel.weightUnit)
