@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CalculatorView: View {
     @Environment(RecipeViewModel.self) private var viewModel
+    @State private var showingAddIngredient = false
 
     var body: some View {
         NavigationStack {
@@ -16,10 +17,13 @@ struct CalculatorView: View {
                 DoughParametersSection()
                 ModeToggleView()
                 HydrationSection()
-                IngredientsListView()
+                IngredientsListView(showingAddIngredient: $showingAddIngredient)
                 PreFermentSection()
             }
             .navigationTitle("Dough Calculator")
+            .sheet(isPresented: $showingAddIngredient) {
+                AddIngredientView()
+            }
         }
     }
 }

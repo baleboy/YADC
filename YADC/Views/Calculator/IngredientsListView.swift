@@ -9,7 +9,7 @@ import SwiftUI
 
 struct IngredientsListView: View {
     @Environment(RecipeViewModel.self) private var viewModel
-    @State private var showingAddIngredient = false
+    @Binding var showingAddIngredient: Bool
 
     var body: some View {
         Section("Ingredients") {
@@ -24,9 +24,6 @@ struct IngredientsListView: View {
                 Label("Add Ingredient", systemImage: "plus.circle")
             }
         }
-        .sheet(isPresented: $showingAddIngredient) {
-            AddIngredientView()
-        }
     }
 
     private func deleteIngredients(at offsets: IndexSet) {
@@ -40,8 +37,9 @@ struct IngredientsListView: View {
 }
 
 #Preview {
+    @Previewable @State var showingAddIngredient = false
     Form {
-        IngredientsListView()
+        IngredientsListView(showingAddIngredient: $showingAddIngredient)
     }
     .environment(RecipeViewModel())
 }
