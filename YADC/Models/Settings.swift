@@ -17,6 +17,13 @@ enum UnitSystem: String, Codable, CaseIterable {
         case .imperial: return "oz"
         }
     }
+
+    var temperatureUnit: String {
+        switch self {
+        case .metric: return "°C"
+        case .imperial: return "°F"
+        }
+    }
 }
 
 struct Settings: Codable, Equatable {

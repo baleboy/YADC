@@ -7,6 +7,7 @@
 
 import Foundation
 import Observation
+import SwiftUI
 
 @Observable
 final class RecipeViewModel {
@@ -173,5 +174,91 @@ final class RecipeViewModel {
 
     var weightUnit: String {
         settings.unitSystem.weightUnit
+    }
+
+    // MARK: - Step Management
+
+    var timerService: TimerService = .shared
+
+    func addStep(description: String, waitingTimeMinutes: Int?, temperatureCelsius: Double?) {
+        let order = recipe.steps.count
+        let step = Step(
+            description: description,
+            waitingTimeMinutes: waitingTimeMinutes,
+            temperatureCelsius: temperatureCelsius,
+            order: order
+        )
+        recipe.steps.append(step)
+        save()
+    }
+
+    func updateStep(id: UUID, description: String, waitingTimeMinutes: Int?, temperatureCelsius: Double?) {
+        guard let index = recipe.steps.firstIndex(where: { $0.id == id }) else { return }
+        recipe.steps[index].description = description
+        recipe.steps[index].waitingTimeMinutes = waitingTimeMinutes
+        recipe.steps[index].temperatureCelsius = temperatureCelsius
+        save()
+    }
+
+    func removeStep(id: UUID) {
+        timerService.stopTimer(for: id)
+        recipe.steps.removeAll { $0.id == id }
+        reorderSteps()
+        save()
+    }
+
+    func moveStep(from source: IndexSet, to destination: Int) {
+        recipe.steps.move(fromOffsets: source, toOffset: destination)
+        reorderSteps()
+        save()
+    }
+
+    private func reorderSteps() {
+        for index in recipe.steps.indices {
+            recipe.steps[index].order = index
+        }
+    }
+
+    // MARK: - Timer Actions
+
+    func startStepTimer(for step: Step) {
+        timerService.requestNotificationPermissions()
+        timerService.startTimer(for: step)
+    }
+
+    func stopStepTimer(for stepId: UUID) {
+        timerService.stopTimer(for: stepId)
+    }
+
+    func pauseStepTimer(for stepId: UUID) {
+        timerService.pauseTimer(for: stepId)
+    }
+
+    func resumeStepTimer(for stepId: UUID) {
+        timerService.resumeTimer(for: stepId)
+    }
+
+    // MARK: - Temperature Display Helpers
+
+    func displayTemperature(_ celsius: Double) -> Double {
+        switch settings.unitSystem {
+        case .metric:
+            return celsius
+        case .imperial:
+            return celsius * 9 / 5 + 32
+        }
+    }
+
+    func temperatureFromInput(_ input: Double) -> Double {
+        switch settings.unitSystem {
+        case .metric:
+            return input
+        case .imperial:
+            return (input - 32) * 5 / 9
+        }
+    }
+
+    var temperatureUnit: String {
+        settings.unitSystem.temperatureUnit
     }
 }

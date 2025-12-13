@@ -15,6 +15,11 @@ struct ContentView: View {
                     Label("Calculator", systemImage: "function")
                 }
 
+            StepsView()
+                .tabItem {
+                    Label("Steps", systemImage: "list.number")
+                }
+
             RecipeView()
                 .tabItem {
                     Label("Recipe", systemImage: "list.bullet")

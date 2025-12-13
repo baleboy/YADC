@@ -61,6 +61,14 @@ struct RecipeView: View {
                             .fontWeight(.medium)
                     }
                 }
+
+                if !viewModel.recipe.steps.isEmpty {
+                    Section("Steps") {
+                        ForEach(Array(viewModel.recipe.steps.enumerated()), id: \.element.id) { index, step in
+                            RecipeStepRow(step: step, stepNumber: index + 1)
+                        }
+                    }
+                }
             }
             .navigationTitle("Recipe")
         }
