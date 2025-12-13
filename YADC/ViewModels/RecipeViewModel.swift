@@ -81,14 +81,14 @@ final class RecipeViewModel {
 
     // MARK: - Ingredient Management
 
-    func addIngredient(name: String, percentage: Double) {
-        let ingredient = Ingredient(name: name, percentage: percentage)
+    func addIngredient(name: String, percentage: Double, hydrationContribution: HydrationContribution = .none) {
+        let ingredient = Ingredient(name: name, percentage: percentage, hydrationContribution: hydrationContribution)
         recipe.ingredients.append(ingredient)
         recalculateWeights()
     }
 
-    func addIngredientByWeight(name: String, weight: Double) {
-        let ingredient = Ingredient(name: name, weight: weight)
+    func addIngredientByWeight(name: String, weight: Double, hydrationContribution: HydrationContribution = .none) {
+        let ingredient = Ingredient(name: name, weight: weight, hydrationContribution: hydrationContribution)
         recipe.ingredients.append(ingredient)
         recalculateFromWeights()
     }

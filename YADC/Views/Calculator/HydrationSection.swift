@@ -23,6 +23,7 @@ struct HydrationSection: View {
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
                     .frame(width: 60)
+                    .textFieldStyle(.roundedBorder)
                     Text("%")
                         .foregroundStyle(.secondary)
                 }

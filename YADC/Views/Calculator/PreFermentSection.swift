@@ -37,6 +37,7 @@ struct PreFermentSection: View {
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
                     .frame(width: 60)
+                    .textFieldStyle(.roundedBorder)
                     Text(viewModel.weightUnit)
                         .foregroundStyle(.secondary)
                 }
@@ -52,6 +53,7 @@ struct PreFermentSection: View {
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
                         .frame(width: 60)
+                        .textFieldStyle(.roundedBorder)
                         Text("%")
                             .foregroundStyle(.secondary)
                     }
@@ -81,6 +83,7 @@ struct PreFermentSection: View {
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
                     .frame(width: 60)
+                    .textFieldStyle(.roundedBorder)
                     Text("%")
                         .foregroundStyle(.secondary)
                 }

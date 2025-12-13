@@ -12,15 +12,31 @@ struct IngredientRowView: View {
     let ingredient: Ingredient
 
     var body: some View {
-        HStack {
-            Text(ingredient.name)
-
-            Spacer()
-
-            if viewModel.mode == .forward {
-                forwardModeContent
-            } else {
-                reverseModeContent
+        if viewModel.mode == .forward && !ingredient.isFlour {
+            VStack {
+                HStack {
+                    Text(ingredient.name)
+                    Spacer()
+                    forwardModeContent
+                }
+                Slider(
+                    value: Binding(
+                        get: { ingredient.percentage },
+                        set: { viewModel.updateIngredientPercentage(id: ingredient.id, percentage: $0) }
+                    ),
+                    in: 0...30,
+                    step: 0.5
+                )
+            }
+        } else {
+            HStack {
+                Text(ingredient.name)
+                Spacer()
+                if viewModel.mode == .forward {
+                    forwardModeContent
+                } else {
+                    reverseModeContent
+                }
             }
         }
     }
@@ -42,6 +58,7 @@ struct IngredientRowView: View {
             .keyboardType(.decimalPad)
             .multilineTextAlignment(.trailing)
             .frame(width: 50)
+            .textFieldStyle(.roundedBorder)
             Text("%")
                 .foregroundStyle(.secondary)
             Text("|")
@@ -64,6 +81,7 @@ struct IngredientRowView: View {
         .keyboardType(.decimalPad)
         .multilineTextAlignment(.trailing)
         .frame(width: 60)
+        .textFieldStyle(.roundedBorder)
         Text(viewModel.weightUnit)
             .foregroundStyle(.secondary)
     }

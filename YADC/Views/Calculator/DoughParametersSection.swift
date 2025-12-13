@@ -31,6 +31,7 @@ struct DoughParametersSection: View {
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
                 .frame(width: 80)
+                .textFieldStyle(.roundedBorder)
                 Text(viewModel.weightUnit)
                     .foregroundStyle(.secondary)
             }

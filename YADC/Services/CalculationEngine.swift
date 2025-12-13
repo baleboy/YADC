@@ -91,8 +91,16 @@ struct CalculationEngine {
         let preFermentFlour = recipe.preFerment.isEnabled ? recipe.preFerment.flourWeight : 0
         let preFermentWater = recipe.preFerment.isEnabled ? recipe.preFerment.waterWeight : 0
 
-        let totalFlourWeight = mainFlourWeight + preFermentFlour
-        let totalWaterWeight = mainWaterWeight + preFermentWater
+        // Add contributions from other ingredients
+        let contributingFlourWeight = recipe.otherIngredients
+            .filter { $0.hydrationContribution == .flour }
+            .reduce(0) { $0 + $1.weight }
+        let contributingWaterWeight = recipe.otherIngredients
+            .filter { $0.hydrationContribution == .water }
+            .reduce(0) { $0 + $1.weight }
+
+        let totalFlourWeight = mainFlourWeight + preFermentFlour + contributingFlourWeight
+        let totalWaterWeight = mainWaterWeight + preFermentWater + contributingWaterWeight
 
         // Calculate overall hydration
         updated.hydration = calculateHydration(flourWeight: totalFlourWeight, waterWeight: totalWaterWeight)
