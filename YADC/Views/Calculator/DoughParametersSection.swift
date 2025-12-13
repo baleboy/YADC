@@ -24,14 +24,18 @@ struct DoughParametersSection: View {
             HStack {
                 Text("Weight per ball")
                 Spacer()
-                TextField("Weight", value: Binding(
-                    get: { viewModel.displayWeight(viewModel.recipe.weightPerBall) },
-                    set: { viewModel.updateWeightPerBall(viewModel.weightFromInput($0)) }
-                ), format: .number.precision(.fractionLength(0...1)))
-                .keyboardType(.decimalPad)
-                .multilineTextAlignment(.trailing)
-                .frame(width: 80)
-                .textFieldStyle(.roundedBorder)
+                if viewModel.mode == .forward {
+                    TextField("Weight", value: Binding(
+                        get: { viewModel.displayWeight(viewModel.recipe.weightPerBall) },
+                        set: { viewModel.updateWeightPerBall(viewModel.weightFromInput($0)) }
+                    ), format: .number.precision(.fractionLength(0...1)))
+                    .keyboardType(.decimalPad)
+                    .multilineTextAlignment(.trailing)
+                    .frame(width: 80)
+                    .textFieldStyle(.roundedBorder)
+                } else {
+                    Text(viewModel.displayWeight(viewModel.recipe.weightPerBall).weightFormatted)
+                }
                 Text(viewModel.weightUnit)
                     .foregroundStyle(.secondary)
             }

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(RecipeViewModel.self) private var viewModel
+    @State private var showResetConfirmation = false
 
     var body: some View {
         NavigationStack {
@@ -45,6 +46,14 @@ struct SettingsView: View {
                     Text("Extra dough to account for what sticks to the bowl and tools during the process.")
                 }
 
+                Section {
+                    Button("Reset All Data", role: .destructive) {
+                        showResetConfirmation = true
+                    }
+                } footer: {
+                    Text("Resets all recipe data and settings to their default values.")
+                }
+
                 Section("About") {
                     HStack {
                         Text("Version")
@@ -55,6 +64,14 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
+            .alert("Reset All Data?", isPresented: $showResetConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Reset", role: .destructive) {
+                    viewModel.resetToDefaults()
+                }
+            } message: {
+                Text("This will reset your recipe and settings to their default values. This action cannot be undone.")
+            }
         }
     }
 }

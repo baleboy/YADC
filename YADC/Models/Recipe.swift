@@ -49,6 +49,13 @@ struct Recipe: Codable, Equatable {
         Double(numberOfBalls) * weightPerBall
     }
 
+    /// Total weight calculated from ingredient weights (for reverse mode)
+    var totalIngredientWeight: Double {
+        let ingredientSum = ingredients.reduce(0) { $0 + $1.weight }
+        let preFermentSum = preFerment.isEnabled ? preFerment.totalWeight : 0
+        return ingredientSum + preFermentSum
+    }
+
     var flour: Ingredient? {
         ingredients.first { $0.isFlour }
     }

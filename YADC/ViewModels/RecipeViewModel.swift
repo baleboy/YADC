@@ -39,7 +39,13 @@ final class RecipeViewModel {
 
     func updateNumberOfBalls(_ count: Int) {
         recipe.numberOfBalls = max(1, count)
-        recalculateWeights()
+        if mode == .reverse {
+            // In reverse mode, update weight per ball based on total ingredient weight
+            recipe.weightPerBall = recipe.totalIngredientWeight / Double(recipe.numberOfBalls)
+            save()
+        } else {
+            recalculateWeights()
+        }
     }
 
     func updateWeightPerBall(_ weight: Double) {
@@ -140,6 +146,13 @@ final class RecipeViewModel {
         recalculateWeights()
     }
 
+    func resetToDefaults() {
+        recipe = Recipe.default
+        settings = Settings.default
+        mode = .forward
+        recalculateWeights()
+    }
+
     // MARK: - Calculations
 
     private func recalculateWeights() {
@@ -152,6 +165,10 @@ final class RecipeViewModel {
 
     private func recalculateFromWeights() {
         recipe = CalculationEngine.recalculateFromWeights(recipe: recipe)
+        // Update weight per ball based on total ingredient weight
+        if recipe.numberOfBalls > 0 {
+            recipe.weightPerBall = recipe.totalIngredientWeight / Double(recipe.numberOfBalls)
+        }
         save()
     }
 
