@@ -27,22 +27,23 @@ struct PreFermentSection: View {
                     }
                 }
 
-                HStack {
-                    Text("Flour")
-                    Spacer()
-                    TextField("", value: Binding(
-                        get: { viewModel.displayWeight(viewModel.recipe.preFerment.flourWeight) },
-                        set: { viewModel.updatePreFermentFlour(viewModel.weightFromInput($0)) }
-                    ), format: .number)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 60)
-                    .textFieldStyle(.roundedBorder)
-                    Text(viewModel.weightUnit)
-                        .foregroundStyle(.secondary)
-                }
-
                 if viewModel.recipe.preFerment.type == .custom {
+                    // Custom: enter flour and hydration, water is calculated
+                    HStack {
+                        Text("Flour")
+                        Spacer()
+                        TextField("", value: Binding(
+                            get: { viewModel.displayWeight(viewModel.recipe.preFerment.flourWeight) },
+                            set: { viewModel.updatePreFermentFlour(viewModel.weightFromInput($0)) }
+                        ), format: .number)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 60)
+                        .textFieldStyle(.roundedBorder)
+                        Text(viewModel.weightUnit)
+                            .foregroundStyle(.secondary)
+                    }
+
                     HStack {
                         Text("Hydration")
                         Spacer()
@@ -57,20 +58,50 @@ struct PreFermentSection: View {
                         Text("%")
                             .foregroundStyle(.secondary)
                     }
+
+                    HStack {
+                        Text("Water")
+                        Spacer()
+                        Text("\(viewModel.displayWeight(viewModel.recipe.preFerment.waterWeight).weightFormatted) \(viewModel.weightUnit)")
+                            .foregroundStyle(.secondary)
+                    }
                 } else {
+                    // Predefined (poolish, biga): enter total weight, flour/water are calculated
+                    HStack {
+                        Text("Total Weight")
+                        Spacer()
+                        TextField("", value: Binding(
+                            get: { viewModel.displayWeight(viewModel.recipe.preFerment.totalWeight) },
+                            set: { viewModel.updatePreFermentTotalWeight(viewModel.weightFromInput($0)) }
+                        ), format: .number)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 60)
+                        .textFieldStyle(.roundedBorder)
+                        Text(viewModel.weightUnit)
+                            .foregroundStyle(.secondary)
+                    }
+
                     HStack {
                         Text("Hydration")
                         Spacer()
                         Text(viewModel.recipe.preFerment.hydration.percentageFormatted)
                             .foregroundStyle(.secondary)
                     }
-                }
 
-                HStack {
-                    Text("Water")
-                    Spacer()
-                    Text("\(viewModel.displayWeight(viewModel.recipe.preFerment.waterWeight).weightFormatted) \(viewModel.weightUnit)")
-                        .foregroundStyle(.secondary)
+                    HStack {
+                        Text("Flour")
+                        Spacer()
+                        Text("\(viewModel.displayWeight(viewModel.recipe.preFerment.flourWeight).weightFormatted) \(viewModel.weightUnit)")
+                            .foregroundStyle(.secondary)
+                    }
+
+                    HStack {
+                        Text("Water")
+                        Spacer()
+                        Text("\(viewModel.displayWeight(viewModel.recipe.preFerment.waterWeight).weightFormatted) \(viewModel.weightUnit)")
+                            .foregroundStyle(.secondary)
+                    }
                 }
 
                 HStack {

@@ -12,7 +12,7 @@ struct IngredientRowView: View {
     let ingredient: Ingredient
 
     var body: some View {
-        if viewModel.mode == .forward && !ingredient.isFlour {
+        if viewModel.mode == .forward && !ingredient.isFlour && !ingredient.isWater {
             VStack {
                 HStack {
                     Text(ingredient.name)
@@ -43,8 +43,10 @@ struct IngredientRowView: View {
 
     @ViewBuilder
     private var forwardModeContent: some View {
-        if ingredient.isFlour {
-            Text("100%")
+        if ingredient.isFlour || ingredient.isWater {
+            // Flour and water show read-only percentage and weight
+            // (water is controlled via the Hydration section)
+            Text(ingredient.percentage.percentageFormatted)
                 .foregroundStyle(.secondary)
             Text("|")
                 .foregroundStyle(.quaternary)

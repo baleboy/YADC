@@ -124,6 +124,11 @@ final class RecipeViewModel {
         recalculateWeights()
     }
 
+    func updatePreFermentTotalWeight(_ weight: Double) {
+        recipe.preFerment.setTotalWeight(max(0, weight))
+        recalculateWeights()
+    }
+
     func updatePreFermentHydration(_ hydration: Double) {
         recipe.preFerment.hydration = max(0, min(200, hydration))
         recalculateWeights()

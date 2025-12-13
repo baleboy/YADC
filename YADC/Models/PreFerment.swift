@@ -58,6 +58,14 @@ struct PreFerment: Codable, Equatable {
         flourWeight + waterWeight + yeastWeight
     }
 
+    /// Calculate flour weight needed to achieve a target total weight
+    mutating func setTotalWeight(_ total: Double) {
+        // totalWeight = flourWeight * (1 + hydration/100 + yeastPercentage/100)
+        // flourWeight = totalWeight / (1 + hydration/100 + yeastPercentage/100)
+        let multiplier = 1 + hydration / 100 + yeastPercentage / 100
+        flourWeight = total / multiplier
+    }
+
     static let `default` = PreFerment(
         type: .poolish,
         flourWeight: 100,

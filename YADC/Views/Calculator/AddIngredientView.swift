@@ -32,6 +32,14 @@ struct AddIngredientView: View {
         return viewModel.weightFromInput(weight) / flourWeight * 100
     }
 
+    private var availableHydrationContributions: [HydrationContribution] {
+        // In forward mode, water is controlled by hydration slider, so don't allow adding water ingredients
+        if mode == .forward {
+            return HydrationContribution.allCases.filter { $0 != .water }
+        }
+        return HydrationContribution.allCases.map { $0 }
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -81,7 +89,7 @@ struct AddIngredientView: View {
                 }
 
                 Picker("Type", selection: $hydrationContribution) {
-                    ForEach(HydrationContribution.allCases) { contribution in
+                    ForEach(availableHydrationContributions) { contribution in
                         Text(contribution.displayName).tag(contribution)
                     }
                 }
