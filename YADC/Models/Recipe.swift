@@ -7,25 +7,42 @@
 
 import Foundation
 
-struct Recipe: Codable, Equatable {
+struct Recipe: Identifiable, Codable, Equatable, Hashable {
+    let id: UUID
+    var name: String
     var numberOfBalls: Int
     var weightPerBall: Double
     var hydration: Double
     var ingredients: [Ingredient]
     var steps: [Step]
+    var createdAt: Date
+    var updatedAt: Date
+
+    // Hashable - use id only for navigation purposes
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 
     init(
+        id: UUID = UUID(),
+        name: String = "New Recipe",
         numberOfBalls: Int,
         weightPerBall: Double,
         hydration: Double,
         ingredients: [Ingredient],
-        steps: [Step] = []
+        steps: [Step] = [],
+        createdAt: Date = Date(),
+        updatedAt: Date = Date()
     ) {
+        self.id = id
+        self.name = name
         self.numberOfBalls = numberOfBalls
         self.weightPerBall = weightPerBall
         self.hydration = hydration
         self.ingredients = ingredients
         self.steps = steps
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
     }
 
     var totalDoughWeight: Double {
@@ -50,6 +67,7 @@ struct Recipe: Codable, Equatable {
     }
 
     static let `default` = Recipe(
+        name: "Pizza Dough",
         numberOfBalls: 4,
         weightPerBall: 250,
         hydration: 65,

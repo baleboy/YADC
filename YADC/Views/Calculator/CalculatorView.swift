@@ -15,7 +15,6 @@ struct CalculatorView: View {
         NavigationStack {
             Form {
                 DoughParametersSection()
-                ModeToggleView()
                 HydrationSection()
                 IngredientsListView(showingAddIngredient: $showingAddIngredient)
             }

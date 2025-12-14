@@ -11,25 +11,59 @@ final class PersistenceService {
     static let shared = PersistenceService()
 
     private let defaults = UserDefaults.standard
-    private let recipeKey = "savedRecipe"
+    private let legacyRecipeKey = "savedRecipe"
+    private let recipesKey = "savedRecipes"
     private let settingsKey = "appSettings"
+    private let migrationKey = "didMigrateToMultiRecipe"
 
     private init() {}
 
-    // MARK: - Recipe
+    // MARK: - Migration
 
-    func save(recipe: Recipe) {
-        if let encoded = try? JSONEncoder().encode(recipe) {
-            defaults.set(encoded, forKey: recipeKey)
+    func migrateIfNeeded() {
+        guard !defaults.bool(forKey: migrationKey) else { return }
+
+        // Check for legacy single recipe
+        if let data = defaults.data(forKey: legacyRecipeKey) {
+            // Try to decode as new Recipe format first (with id)
+            if let recipe = try? JSONDecoder().decode(Recipe.self, from: data) {
+                // Already has the new format, just wrap in array
+                saveRecipes([recipe])
+            } else {
+                // Try to decode legacy format (without id/name) and migrate
+                if let legacyRecipe = try? JSONDecoder().decode(LegacyRecipe.self, from: data) {
+                    let migratedRecipe = Recipe(
+                        name: "My Recipe",
+                        numberOfBalls: legacyRecipe.numberOfBalls,
+                        weightPerBall: legacyRecipe.weightPerBall,
+                        hydration: legacyRecipe.hydration,
+                        ingredients: legacyRecipe.ingredients,
+                        steps: legacyRecipe.steps
+                    )
+                    saveRecipes([migratedRecipe])
+                }
+            }
+            // Clean up legacy key
+            defaults.removeObject(forKey: legacyRecipeKey)
+        }
+
+        defaults.set(true, forKey: migrationKey)
+    }
+
+    // MARK: - Recipes (Multiple)
+
+    func saveRecipes(_ recipes: [Recipe]) {
+        if let encoded = try? JSONEncoder().encode(recipes) {
+            defaults.set(encoded, forKey: recipesKey)
         }
     }
 
-    func loadRecipe() -> Recipe? {
-        guard let data = defaults.data(forKey: recipeKey),
-              let recipe = try? JSONDecoder().decode(Recipe.self, from: data) else {
-            return nil
+    func loadRecipes() -> [Recipe] {
+        guard let data = defaults.data(forKey: recipesKey),
+              let recipes = try? JSONDecoder().decode([Recipe].self, from: data) else {
+            return []
         }
-        return recipe
+        return recipes
     }
 
     // MARK: - Settings
@@ -51,7 +85,19 @@ final class PersistenceService {
     // MARK: - Reset
 
     func resetAll() {
-        defaults.removeObject(forKey: recipeKey)
+        defaults.removeObject(forKey: legacyRecipeKey)
+        defaults.removeObject(forKey: recipesKey)
         defaults.removeObject(forKey: settingsKey)
+        defaults.removeObject(forKey: migrationKey)
     }
+}
+
+// MARK: - Legacy Recipe (for migration)
+
+private struct LegacyRecipe: Codable {
+    var numberOfBalls: Int
+    var weightPerBall: Double
+    var hydration: Double
+    var ingredients: [Ingredient]
+    var steps: [Step]
 }

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @Environment(RecipeViewModel.self) private var viewModel
+    @Environment(RecipeStore.self) private var store
     @State private var showResetConfirmation = false
 
     var body: some View {
@@ -16,8 +16,8 @@ struct SettingsView: View {
             Form {
                 Section("Units") {
                     Picker("Unit System", selection: Binding(
-                        get: { viewModel.settings.unitSystem },
-                        set: { viewModel.updateUnitSystem($0) }
+                        get: { store.settings.unitSystem },
+                        set: { store.updateUnitSystem($0) }
                     )) {
                         Text("Metric (grams)").tag(UnitSystem.metric)
                         Text("Imperial (ounces)").tag(UnitSystem.imperial)
@@ -30,15 +30,15 @@ struct SettingsView: View {
                     HStack {
                         Text("Dough Residue")
                         Spacer()
-                        Text(viewModel.settings.doughResiduePercentage.percentageFormatted)
+                        Text(store.settings.doughResiduePercentage.percentageFormatted)
                             .foregroundStyle(Color("TextSecondary"))
                     }
                     .listRowBackground(Color("FormRowBackground"))
 
                     Slider(
                         value: Binding(
-                            get: { viewModel.settings.doughResiduePercentage },
-                            set: { viewModel.updateDoughResidue($0) }
+                            get: { store.settings.doughResiduePercentage },
+                            set: { store.updateDoughResidue($0) }
                         ),
                         in: 0...10,
                         step: 0.5
@@ -58,7 +58,7 @@ struct SettingsView: View {
                     .foregroundStyle(.red)
                     .listRowBackground(Color("FormRowBackground"))
                 } footer: {
-                    Text("Resets all recipe data and settings to their default values.")
+                    Text("Deletes all recipes and resets settings to their default values.")
                 }
 
                 Section("About") {
@@ -80,10 +80,10 @@ struct SettingsView: View {
             .alert("Reset All Data?", isPresented: $showResetConfirmation) {
                 Button("Cancel", role: .cancel) { }
                 Button("Reset", role: .destructive) {
-                    viewModel.resetToDefaults()
+                    store.resetToDefaults()
                 }
             } message: {
-                Text("This will reset your recipe and settings to their default values. This action cannot be undone.")
+                Text("This will delete all your recipes and reset settings to default values. This action cannot be undone.")
             }
         }
     }
@@ -91,5 +91,5 @@ struct SettingsView: View {
 
 #Preview {
     SettingsView()
-        .environment(RecipeViewModel())
+        .environment(RecipeStore())
 }

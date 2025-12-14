@@ -10,19 +10,9 @@ import SwiftUI
 struct ContentView: View {
     var body: some View {
         TabView {
-            CalculatorView()
+            RecipeListView()
                 .tabItem {
-                    Label("Calculator", systemImage: "function")
-                }
-
-            StepsView()
-                .tabItem {
-                    Label("Steps", systemImage: "list.number")
-                }
-
-            RecipeView()
-                .tabItem {
-                    Label("Recipe", systemImage: "list.bullet")
+                    Label("Recipes", systemImage: "book")
                 }
 
             SettingsView()
@@ -38,5 +28,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .environment(RecipeViewModel())
+        .environment(RecipeStore())
 }

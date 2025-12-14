@@ -9,7 +9,7 @@ import SwiftUI
 
 @main
 struct YADCApp: App {
-    @State private var viewModel = RecipeViewModel()
+    @State private var store = RecipeStore()
 
     init() {
         configureAppearance()
@@ -18,7 +18,7 @@ struct YADCApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(viewModel)
+                .environment(store)
                 .preferredColorScheme(.light)
                 .tint(Color("AccentColor"))
                 .accentColor(Color("AccentColor"))

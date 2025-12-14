@@ -13,16 +13,42 @@ import SwiftUI
 final class RecipeViewModel {
     var recipe: Recipe
     var mode: CalculatorMode = .forward
-    var settings: Settings
 
-    private let persistenceService: PersistenceService
+    let isNewRecipe: Bool
+    private let originalRecipeId: UUID?
 
-    init(persistenceService: PersistenceService = .shared) {
-        self.persistenceService = persistenceService
-        self.recipe = persistenceService.loadRecipe() ?? Recipe.default
-        self.settings = persistenceService.loadSettings() ?? Settings.default
+    // Reference to store for settings access
+    var store: RecipeStore?
 
+    var settings: Settings {
+        store?.settings ?? Settings.default
+    }
+
+    // MARK: - Initialization
+
+    init(recipe: Recipe? = nil, store: RecipeStore? = nil) {
+        if let existingRecipe = recipe {
+            self.recipe = existingRecipe
+            self.isNewRecipe = false
+            self.originalRecipeId = existingRecipe.id
+        } else {
+            self.recipe = Recipe.default
+            self.isNewRecipe = true
+            self.originalRecipeId = nil
+        }
+        self.store = store
         recalculateWeights()
+    }
+
+    // MARK: - Save/Discard
+
+    func saveChanges() -> Recipe {
+        recipe.updatedAt = Date()
+        return recipe
+    }
+
+    func discardChanges() {
+        // No-op, the editing copy is simply discarded
     }
 
     // MARK: - Mode Switching
@@ -42,7 +68,6 @@ final class RecipeViewModel {
         if mode == .reverse {
             // In reverse mode, update weight per ball based on total ingredient weight
             recipe.weightPerBall = recipe.totalIngredientWeight / Double(recipe.numberOfBalls)
-            save()
         } else {
             recalculateWeights()
         }
@@ -197,25 +222,6 @@ final class RecipeViewModel {
         }
     }
 
-    // MARK: - Settings
-
-    func updateUnitSystem(_ system: UnitSystem) {
-        settings.unitSystem = system
-        save()
-    }
-
-    func updateDoughResidue(_ percentage: Double) {
-        settings.doughResiduePercentage = max(0, min(20, percentage))
-        recalculateWeights()
-    }
-
-    func resetToDefaults() {
-        recipe = Recipe.default
-        settings = Settings.default
-        mode = .forward
-        recalculateWeights()
-    }
-
     // MARK: - Calculations
 
     private func recalculateWeights() {
@@ -223,7 +229,6 @@ final class RecipeViewModel {
             recipe: recipe,
             doughResiduePercentage: settings.doughResiduePercentage
         )
-        save()
     }
 
     private func recalculateFromWeights() {
@@ -232,14 +237,6 @@ final class RecipeViewModel {
         if recipe.numberOfBalls > 0 {
             recipe.weightPerBall = recipe.totalIngredientWeight / Double(recipe.numberOfBalls)
         }
-        save()
-    }
-
-    // MARK: - Persistence
-
-    private func save() {
-        persistenceService.save(recipe: recipe)
-        persistenceService.save(settings: settings)
     }
 
     // MARK: - Display Helpers
@@ -269,7 +266,6 @@ final class RecipeViewModel {
             order: order
         )
         recipe.steps.append(step)
-        save()
     }
 
     func updateStep(id: UUID, description: String, waitingTimeMinutes: Int?, temperatureCelsius: Double?) {
@@ -277,20 +273,17 @@ final class RecipeViewModel {
         recipe.steps[index].description = description
         recipe.steps[index].waitingTimeMinutes = waitingTimeMinutes
         recipe.steps[index].temperatureCelsius = temperatureCelsius
-        save()
     }
 
     func removeStep(id: UUID) {
         timerService.stopTimer(for: id)
         recipe.steps.removeAll { $0.id == id }
         reorderSteps()
-        save()
     }
 
     func moveStep(from source: IndexSet, to destination: Int) {
         recipe.steps.move(fromOffsets: source, toOffset: destination)
         reorderSteps()
-        save()
     }
 
     private func reorderSteps() {
