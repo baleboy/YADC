@@ -83,10 +83,24 @@ struct RecipeEditorView: View {
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        saveAndDismiss()
+                    if originalRecipe != nil {
+                        Menu {
+                            Button("Save") {
+                                saveAndDismiss()
+                            }
+                            Button("Save as New Recipe") {
+                                saveAsNewAndDismiss()
+                            }
+                        } label: {
+                            Text("Save")
+                                .fontWeight(.semibold)
+                        }
+                    } else {
+                        Button("Save") {
+                            saveAndDismiss()
+                        }
+                        .fontWeight(.semibold)
                     }
-                    .fontWeight(.semibold)
                 }
             }
         }
@@ -120,6 +134,23 @@ struct RecipeEditorView: View {
             store.updateRecipe(savedRecipe)
         }
 
+        dismiss()
+    }
+
+    private func saveAsNewAndDismiss() {
+        let savedRecipe = viewModel.saveChanges()
+        let newRecipe = Recipe(
+            id: UUID(),
+            name: savedRecipe.name,
+            numberOfBalls: savedRecipe.numberOfBalls,
+            weightPerBall: savedRecipe.weightPerBall,
+            hydration: savedRecipe.hydration,
+            ingredients: savedRecipe.ingredients,
+            steps: savedRecipe.steps,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+        store.addRecipe(newRecipe)
         dismiss()
     }
 }
