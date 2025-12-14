@@ -21,7 +21,7 @@ struct StepRowView: View {
                     if let minutes = step.waitingTimeMinutes, minutes > 0 {
                         Label(formatDuration(minutes), systemImage: "clock")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color("TextSecondary"))
                     }
 
                     if let temp = step.temperatureCelsius {

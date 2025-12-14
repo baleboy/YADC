@@ -22,6 +22,8 @@ struct SettingsView: View {
                         Text("Metric (grams)").tag(UnitSystem.metric)
                         Text("Imperial (ounces)").tag(UnitSystem.imperial)
                     }
+                    .tint(Color("AccentColor"))
+                    .listRowBackground(Color("FormRowBackground"))
                 }
 
                 Section {
@@ -29,8 +31,9 @@ struct SettingsView: View {
                         Text("Dough Residue")
                         Spacer()
                         Text(viewModel.settings.doughResiduePercentage.percentageFormatted)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color("TextSecondary"))
                     }
+                    .listRowBackground(Color("FormRowBackground"))
 
                     Slider(
                         value: Binding(
@@ -40,6 +43,8 @@ struct SettingsView: View {
                         in: 0...10,
                         step: 0.5
                     )
+                    .tint(Color("AccentColor"))
+                    .listRowBackground(Color("FormRowBackground"))
                 } header: {
                     Text("Dough Residue")
                 } footer: {
@@ -50,6 +55,8 @@ struct SettingsView: View {
                     Button("Reset All Data", role: .destructive) {
                         showResetConfirmation = true
                     }
+                    .foregroundStyle(.red)
+                    .listRowBackground(Color("FormRowBackground"))
                 } footer: {
                     Text("Resets all recipe data and settings to their default values.")
                 }
@@ -59,11 +66,17 @@ struct SettingsView: View {
                         Text("Version")
                         Spacer()
                         Text("1.0.0")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color("TextSecondary"))
                     }
+                    .listRowBackground(Color("FormRowBackground"))
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color("CreamBackground"))
+            .foregroundStyle(Color("TextPrimary"))
             .navigationTitle("Settings")
+            .toolbarBackground(Color("CreamBackground"), for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .alert("Reset All Data?", isPresented: $showResetConfirmation) {
                 Button("Cancel", role: .cancel) { }
                 Button("Reset", role: .destructive) {

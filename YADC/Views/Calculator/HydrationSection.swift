@@ -23,10 +23,11 @@ struct HydrationSection: View {
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
                     .frame(width: 60)
-                    .textFieldStyle(.roundedBorder)
+                    .themedTextField()
                     Text("%")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color("TextSecondary"))
                 }
+                .listRowBackground(Color("FormRowBackground"))
 
                 Slider(
                     value: Binding(
@@ -36,13 +37,16 @@ struct HydrationSection: View {
                     in: 50...100,
                     step: 1
                 )
+                .tint(Color("AccentColor"))
+                .listRowBackground(Color("FormRowBackground"))
             } else {
                 HStack {
                     Text("Calculated Hydration")
                     Spacer()
                     Text(viewModel.recipe.hydration.percentageFormatted)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color("TextSecondary"))
                 }
+                .listRowBackground(Color("FormRowBackground"))
             }
         }
     }

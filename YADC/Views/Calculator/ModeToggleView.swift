@@ -26,6 +26,8 @@ struct ModeToggleView: View {
                 Text("By Weight").tag(CalculatorMode.reverse)
             }
             .pickerStyle(.segmented)
+            .tint(Color("AccentColor"))
+            .listRowBackground(Color("FormRowBackground"))
         } footer: {
             Text(viewModel.mode == .forward
                  ? "Enter percentages to calculate weights"

@@ -20,8 +20,13 @@ struct CalculatorView: View {
                 IngredientsListView(showingAddIngredient: $showingAddIngredient)
                 PreFermentSection()
             }
+            .scrollContentBackground(.hidden)
+            .background(Color("CreamBackground"))
+            .foregroundStyle(Color("TextPrimary"))
             .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Dough Calculator")
+            .toolbarBackground(Color("CreamBackground"), for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .sheet(isPresented: $showingAddIngredient) {
                 AddIngredientView(mode: viewModel.mode, weightUnit: viewModel.weightUnit)
             }

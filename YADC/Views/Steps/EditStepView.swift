@@ -34,10 +34,13 @@ struct EditStepView: View {
                 Section("Description") {
                     TextField("Step description", text: $description, axis: .vertical)
                         .lineLimit(3...6)
+                        .listRowBackground(Color("FormRowBackground"))
                 }
 
                 Section("Waiting Time") {
                     Toggle("Has waiting time", isOn: $hasWaitingTime)
+                        .tint(Color("AccentColor"))
+                        .listRowBackground(Color("FormRowBackground"))
 
                     if hasWaitingTime {
                         Stepper(
@@ -46,6 +49,8 @@ struct EditStepView: View {
                             in: 1...1440,
                             step: stepValue
                         )
+                        .tint(Color("AccentColor"))
+                        .listRowBackground(Color("FormRowBackground"))
 
                         HStack {
                             ForEach([15, 30, 60, 120], id: \.self) { minutes in
@@ -53,13 +58,17 @@ struct EditStepView: View {
                                     waitingTimeMinutes = minutes
                                 }
                                 .buttonStyle(.bordered)
+                                .tint(Color("AccentColor"))
                             }
                         }
+                        .listRowBackground(Color("FormRowBackground"))
                     }
                 }
 
                 Section("Temperature") {
                     Toggle("Has temperature", isOn: $hasTemperature)
+                        .tint(Color("AccentColor"))
+                        .listRowBackground(Color("FormRowBackground"))
 
                     if hasTemperature {
                         HStack {
@@ -69,19 +78,27 @@ struct EditStepView: View {
                                 format: .number.precision(.fractionLength(0))
                             )
                             .keyboardType(.decimalPad)
-                            .textFieldStyle(.roundedBorder)
+                            .themedTextField()
                             .frame(width: 80)
 
                             Text(viewModel.temperatureUnit)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color("TextSecondary"))
                         }
+                        .listRowBackground(Color("FormRowBackground"))
 
                         Slider(value: $temperature, in: temperatureRange, step: 1)
+                            .tint(Color("AccentColor"))
+                            .listRowBackground(Color("FormRowBackground"))
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color("CreamBackground"))
+            .foregroundStyle(Color("TextPrimary"))
             .navigationTitle("Edit Step")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color("CreamBackground"), for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }

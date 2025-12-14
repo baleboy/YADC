@@ -16,11 +16,16 @@ struct StepsView: View {
         NavigationStack {
             Group {
                 if viewModel.recipe.steps.isEmpty {
-                    ContentUnavailableView(
-                        "No Steps",
-                        systemImage: "list.number",
-                        description: Text("Add steps to your recipe")
-                    )
+                    ZStack {
+                        Color("CreamBackground")
+                            .ignoresSafeArea()
+                        ContentUnavailableView(
+                            "No Steps",
+                            systemImage: "list.number",
+                            description: Text("Add steps to your recipe")
+                        )
+                        .foregroundStyle(Color("TextPrimary"))
+                    }
                 } else {
                     List {
                         ForEach(viewModel.recipe.steps) { step in
@@ -29,13 +34,19 @@ struct StepsView: View {
                                 .onTapGesture {
                                     editingStep = step
                                 }
+                                .listRowBackground(Color("FormRowBackground"))
                         }
                         .onMove(perform: moveSteps)
                         .onDelete(perform: deleteSteps)
                     }
+                    .scrollContentBackground(.hidden)
+                    .background(Color("CreamBackground"))
+                    .foregroundStyle(Color("TextPrimary"))
                 }
             }
             .navigationTitle("Steps")
+            .toolbarBackground(Color("CreamBackground"), for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     if !viewModel.recipe.steps.isEmpty {

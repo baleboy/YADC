@@ -31,7 +31,7 @@ struct RecipeStepRow: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top) {
                 Text("\(stepNumber).")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color("TextSecondary"))
                     .frame(width: 24, alignment: .leading)
                 Text(step.description)
             }
@@ -41,10 +41,10 @@ struct RecipeStepRow: View {
                     if timerIsActive, let remaining = remainingSeconds {
                         HStack(spacing: 8) {
                             Image(systemName: "timer")
-                                .foregroundStyle(timerIsPaused ? Color.secondary : Color.orange)
+                                .foregroundStyle(timerIsPaused ? Color.secondary : Color("AccentColor"))
                             Text(formatTime(remaining))
                                 .monospacedDigit()
-                                .foregroundStyle(timerIsPaused ? Color.secondary : Color.orange)
+                                .foregroundStyle(timerIsPaused ? Color.secondary : Color("AccentColor"))
 
                             if timerIsPaused {
                                 Button {
@@ -54,7 +54,7 @@ struct RecipeStepRow: View {
                                         .font(.caption)
                                 }
                                 .buttonStyle(.bordered)
-                                .tint(.green)
+                                .tint(Color("AccentColor"))
                             } else {
                                 Button {
                                     viewModel.pauseStepTimer(for: step.id)
@@ -63,7 +63,7 @@ struct RecipeStepRow: View {
                                         .font(.caption)
                                 }
                                 .buttonStyle(.bordered)
-                                .tint(.orange)
+                                .tint(Color("BrownMedium"))
                             }
 
                             Button {
@@ -73,7 +73,7 @@ struct RecipeStepRow: View {
                                     .font(.caption)
                             }
                             .buttonStyle(.bordered)
-                            .tint(.red)
+                            .tint(Color("BrownDark"))
                         }
                     } else {
                         Button {
@@ -83,7 +83,7 @@ struct RecipeStepRow: View {
                                 .font(.caption)
                         }
                         .buttonStyle(.bordered)
-                        .tint(.green)
+                        .tint(Color("AccentColor"))
                     }
                 }
 
@@ -93,7 +93,7 @@ struct RecipeStepRow: View {
                         systemImage: "thermometer.medium"
                     )
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color("TextSecondary"))
                 }
             }
         }

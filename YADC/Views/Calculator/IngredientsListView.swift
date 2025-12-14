@@ -15,6 +15,7 @@ struct IngredientsListView: View {
         Section("Ingredients") {
             ForEach(viewModel.recipe.ingredients) { ingredient in
                 IngredientRowView(ingredient: ingredient)
+                    .listRowBackground(Color("FormRowBackground"))
             }
             .onDelete(perform: deleteIngredients)
 
@@ -23,6 +24,8 @@ struct IngredientsListView: View {
             } label: {
                 Label("Add Ingredient", systemImage: "plus.circle")
             }
+            .foregroundStyle(Color("AccentColor"))
+            .listRowBackground(Color("FormRowBackground"))
         }
     }
 

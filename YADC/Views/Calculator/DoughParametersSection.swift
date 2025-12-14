@@ -20,6 +20,8 @@ struct DoughParametersSection: View {
                         set: { viewModel.updateNumberOfBalls($0) }
                     ),
                     in: 1...100)
+            .tint(Color("AccentColor"))
+            .listRowBackground(Color("FormRowBackground"))
 
             HStack {
                 Text("Weight per ball")
@@ -32,20 +34,22 @@ struct DoughParametersSection: View {
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
                     .frame(width: 80)
-                    .textFieldStyle(.roundedBorder)
+                    .themedTextField()
                 } else {
                     Text(viewModel.displayWeight(viewModel.recipe.weightPerBall).weightFormatted)
                 }
                 Text(viewModel.weightUnit)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color("TextSecondary"))
             }
+            .listRowBackground(Color("FormRowBackground"))
 
             HStack {
                 Text("Total dough weight")
                 Spacer()
                 Text("\(viewModel.displayWeight(viewModel.recipe.totalDoughWeight).weightFormatted) \(viewModel.weightUnit)")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color("TextSecondary"))
             }
+            .listRowBackground(Color("FormRowBackground"))
         }
     }
 }

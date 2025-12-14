@@ -27,6 +27,7 @@ struct IngredientRowView: View {
                     in: 0...30,
                     step: 0.5
                 )
+                .tint(Color("AccentColor"))
             }
         } else {
             HStack {
@@ -47,11 +48,11 @@ struct IngredientRowView: View {
             // Flour and water show read-only percentage and weight
             // (water is controlled via the Hydration section)
             Text(ingredient.percentage.percentageFormatted)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color("TextSecondary"))
             Text("|")
-                .foregroundStyle(.quaternary)
+                .foregroundStyle(Color("TextTertiary"))
             Text("\(viewModel.displayWeight(ingredient.weight).weightFormatted) \(viewModel.weightUnit)")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color("TextSecondary"))
         } else {
             TextField("", value: Binding(
                 get: { ingredient.percentage },
@@ -60,22 +61,22 @@ struct IngredientRowView: View {
             .keyboardType(.decimalPad)
             .multilineTextAlignment(.trailing)
             .frame(width: 50)
-            .textFieldStyle(.roundedBorder)
+            .themedTextField()
             Text("%")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color("TextSecondary"))
             Text("|")
-                .foregroundStyle(.quaternary)
+                .foregroundStyle(Color("TextTertiary"))
             Text("\(viewModel.displayWeight(ingredient.weight).weightFormatted) \(viewModel.weightUnit)")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color("TextSecondary"))
         }
     }
 
     @ViewBuilder
     private var reverseModeContent: some View {
         Text(ingredient.percentage.percentageFormatted)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(Color("TextSecondary"))
         Text("|")
-            .foregroundStyle(.quaternary)
+            .foregroundStyle(Color("TextTertiary"))
         TextField("", value: Binding(
             get: { viewModel.displayWeight(ingredient.weight) },
             set: { viewModel.updateIngredientWeight(id: ingredient.id, weight: viewModel.weightFromInput($0)) }
@@ -85,7 +86,7 @@ struct IngredientRowView: View {
         .frame(width: 60)
         .textFieldStyle(.roundedBorder)
         Text(viewModel.weightUnit)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(Color("TextSecondary"))
     }
 }
 

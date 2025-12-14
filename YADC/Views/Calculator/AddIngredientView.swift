@@ -44,6 +44,7 @@ struct AddIngredientView: View {
         NavigationStack {
             Form {
                 TextField("Ingredient name", text: $name)
+                    .listRowBackground(Color("FormRowBackground"))
 
                 if mode == .forward {
                     VStack {
@@ -54,19 +55,22 @@ struct AddIngredientView: View {
                                 .keyboardType(.decimalPad)
                                 .multilineTextAlignment(.trailing)
                                 .frame(width: 60)
-                                .textFieldStyle(.roundedBorder)
+                                .themedTextField()
                             Text("%")
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color("TextSecondary"))
                         }
                         Slider(value: $percentage, in: 0...30, step: 0.5)
+                            .tint(Color("AccentColor"))
                     }
+                    .listRowBackground(Color("FormRowBackground"))
 
                     HStack {
                         Text("Weight")
                         Spacer()
                         Text("\(calculatedWeight.weightFormatted) \(weightUnit)")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color("TextSecondary"))
                     }
+                    .listRowBackground(Color("FormRowBackground"))
                 } else {
                     HStack {
                         Text("Weight")
@@ -75,17 +79,19 @@ struct AddIngredientView: View {
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 60)
-                            .textFieldStyle(.roundedBorder)
+                            .themedTextField()
                         Text(weightUnit)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color("TextSecondary"))
                     }
+                    .listRowBackground(Color("FormRowBackground"))
 
                     HStack {
                         Text("Percentage")
                         Spacer()
                         Text(calculatedPercentage.percentageFormatted)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color("TextSecondary"))
                     }
+                    .listRowBackground(Color("FormRowBackground"))
                 }
 
                 Picker("Type", selection: $hydrationContribution) {
@@ -93,9 +99,16 @@ struct AddIngredientView: View {
                         Text(contribution.displayName).tag(contribution)
                     }
                 }
+                .tint(Color("AccentColor"))
+                .listRowBackground(Color("FormRowBackground"))
             }
+            .scrollContentBackground(.hidden)
+            .background(Color("CreamBackground"))
+            .foregroundStyle(Color("TextPrimary"))
             .navigationTitle("Add Ingredient")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color("CreamBackground"), for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {

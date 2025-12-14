@@ -16,6 +16,8 @@ struct PreFermentSection: View {
                 get: { viewModel.recipe.preFerment.isEnabled },
                 set: { viewModel.togglePreFerment($0) }
             ))
+            .tint(Color("AccentColor"))
+            .listRowBackground(Color("FormRowBackground"))
 
             if viewModel.recipe.preFerment.isEnabled {
                 Picker("Type", selection: Binding(
@@ -26,6 +28,8 @@ struct PreFermentSection: View {
                         Text(type.displayName).tag(type)
                     }
                 }
+                .tint(Color("AccentColor"))
+                .listRowBackground(Color("FormRowBackground"))
 
                 if viewModel.recipe.preFerment.type == .custom {
                     // Custom: enter flour and hydration, water is calculated
@@ -39,10 +43,11 @@ struct PreFermentSection: View {
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
                         .frame(width: 60)
-                        .textFieldStyle(.roundedBorder)
+                        .themedTextField()
                         Text(viewModel.weightUnit)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color("TextSecondary"))
                     }
+                    .listRowBackground(Color("FormRowBackground"))
 
                     HStack {
                         Text("Hydration")
@@ -54,17 +59,19 @@ struct PreFermentSection: View {
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
                         .frame(width: 60)
-                        .textFieldStyle(.roundedBorder)
+                        .themedTextField()
                         Text("%")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color("TextSecondary"))
                     }
+                    .listRowBackground(Color("FormRowBackground"))
 
                     HStack {
                         Text("Water")
                         Spacer()
                         Text("\(viewModel.displayWeight(viewModel.recipe.preFerment.waterWeight).weightFormatted) \(viewModel.weightUnit)")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color("TextSecondary"))
                     }
+                    .listRowBackground(Color("FormRowBackground"))
                 } else {
                     // Predefined (poolish, biga): enter total weight, flour/water are calculated
                     HStack {
@@ -77,31 +84,35 @@ struct PreFermentSection: View {
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
                         .frame(width: 60)
-                        .textFieldStyle(.roundedBorder)
+                        .themedTextField()
                         Text(viewModel.weightUnit)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color("TextSecondary"))
                     }
+                    .listRowBackground(Color("FormRowBackground"))
 
                     HStack {
                         Text("Hydration")
                         Spacer()
                         Text(viewModel.recipe.preFerment.hydration.percentageFormatted)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color("TextSecondary"))
                     }
+                    .listRowBackground(Color("FormRowBackground"))
 
                     HStack {
                         Text("Flour")
                         Spacer()
                         Text("\(viewModel.displayWeight(viewModel.recipe.preFerment.flourWeight).weightFormatted) \(viewModel.weightUnit)")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color("TextSecondary"))
                     }
+                    .listRowBackground(Color("FormRowBackground"))
 
                     HStack {
                         Text("Water")
                         Spacer()
                         Text("\(viewModel.displayWeight(viewModel.recipe.preFerment.waterWeight).weightFormatted) \(viewModel.weightUnit)")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color("TextSecondary"))
                     }
+                    .listRowBackground(Color("FormRowBackground"))
                 }
 
                 HStack {
@@ -114,10 +125,11 @@ struct PreFermentSection: View {
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
                     .frame(width: 60)
-                    .textFieldStyle(.roundedBorder)
+                    .themedTextField()
                     Text("%")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color("TextSecondary"))
                 }
+                .listRowBackground(Color("FormRowBackground"))
             }
         } header: {
             Text("Pre-ferment")

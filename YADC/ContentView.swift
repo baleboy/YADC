@@ -30,6 +30,9 @@ struct ContentView: View {
                     Label("Settings", systemImage: "gear")
                 }
         }
+        .toolbarBackground(Color("CreamBackground"), for: .tabBar)
+        .toolbarBackground(.visible, for: .tabBar)
+        .foregroundStyle(Color("TextPrimary"))
     }
 }
 

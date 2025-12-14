@@ -38,4 +38,4 @@ xcodebuild -scheme YADC -only-testing:YADCUITests test
 - **UI tests**: `YADCUITests/` (XCTest framework)
 - **Persistence**: UserDefaults (single recipe for MVP)
 - **Dependencies**: None (pure SwiftUI, no SPM packages)
-- **Target**: iOS 26.1+
+- **Target**: iOS 17.0+
