@@ -102,6 +102,7 @@ struct RecipeDetailView: View {
         .fullScreenCover(isPresented: $showingEditor) {
             RecipeEditorView(recipe: currentRecipe)
         }
+        .toolbar(.hidden, for: .tabBar)
     }
 }
 
