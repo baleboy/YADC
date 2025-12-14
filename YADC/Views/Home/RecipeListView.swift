@@ -49,7 +49,6 @@ struct RecipeListView: View {
                 }
             }
             .toolbarBackground(Color("CreamBackground"), for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
             .fullScreenCover(isPresented: $showingNewRecipeEditor) {
                 RecipeEditorView(recipe: nil)
             }

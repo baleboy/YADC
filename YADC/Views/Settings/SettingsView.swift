@@ -76,7 +76,6 @@ struct SettingsView: View {
             .foregroundStyle(Color("TextPrimary"))
             .navigationTitle("Settings")
             .toolbarBackground(Color("CreamBackground"), for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
             .alert("Reset All Data?", isPresented: $showResetConfirmation) {
                 Button("Cancel", role: .cancel) { }
                 Button("Reset", role: .destructive) {

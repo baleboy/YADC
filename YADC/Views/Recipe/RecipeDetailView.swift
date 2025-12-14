@@ -91,7 +91,6 @@ struct RecipeDetailView: View {
         .navigationTitle(currentRecipe.name)
         .navigationBarTitleDisplayMode(.large)
         .toolbarBackground(Color("CreamBackground"), for: .navigationBar)
-        .toolbarBackground(.visible, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Edit") {

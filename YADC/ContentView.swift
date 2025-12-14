@@ -22,7 +22,7 @@ struct ContentView: View {
         }
         .toolbarBackground(Color("CreamBackground"), for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)
-        .foregroundStyle(Color("TextPrimary"))
+        .tint(Color("AccentColor"))
     }
 }
 
