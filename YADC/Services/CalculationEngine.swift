@@ -18,24 +18,35 @@ struct CalculationEngine {
     ) -> [Ingredient] {
         let adjustedWeight = recipe.totalDoughWeight * (1 + doughResiduePercentage / 100)
 
-        // Total percentage = flour (100) + water (hydration) + other ingredients
+        // Total percentage = flour (100) + water (hydration) + other ingredients + pre-ferments
         let otherPercentagesSum = recipe.otherIngredients.reduce(0) { $0 + $1.percentage }
-        let totalPercentage = 100 + recipe.hydration + otherPercentagesSum
+        let preFermentPercentagesSum = recipe.ingredients
+            .filter { $0.isPreFerment }
+            .reduce(0) { $0 + $1.percentage }
+        let totalPercentage = 100 + recipe.hydration + otherPercentagesSum + preFermentPercentagesSum
 
         guard totalPercentage > 0 else { return recipe.ingredients }
 
         // Total flour weight calculation (includes pre-ferment flour)
         let totalFlourWeight = adjustedWeight * 100 / totalPercentage
 
-        // Account for pre-ferment contributions from subIngredients
+        // First pass: calculate pre-ferment weights and their flour/water contributions
         var preFermentFlour: Double = 0
         var preFermentWater: Double = 0
 
-        for ingredient in recipe.ingredients where ingredient.isPreFerment {
-            if let subIngredients = ingredient.subIngredients {
-                preFermentFlour += subIngredients.first(where: { $0.isFlour })?.weight ?? 0
-                preFermentWater += subIngredients.first(where: { $0.isWater })?.weight ?? 0
+        var updatedIngredients = recipe.ingredients.map { ingredient -> Ingredient in
+            var updated = ingredient
+            if ingredient.isPreFerment {
+                // Scale pre-ferment based on its percentage of total flour
+                updated.weight = totalFlourWeight * ingredient.percentage / 100
+                updated.calculateSubIngredients()
+
+                if let subIngredients = updated.subIngredients {
+                    preFermentFlour += subIngredients.first(where: { $0.isFlour })?.weight ?? 0
+                    preFermentWater += subIngredients.first(where: { $0.isWater })?.weight ?? 0
+                }
             }
+            return updated
         }
 
         // Main dough flour and water (subtract pre-ferment amounts)
@@ -43,11 +54,11 @@ struct CalculationEngine {
         let totalWaterWeight = totalFlourWeight * recipe.hydration / 100
         let mainWaterWeight = max(0, totalWaterWeight - preFermentWater)
 
-        return recipe.ingredients.map { ingredient in
+        // Second pass: update non-pre-ferment ingredients
+        updatedIngredients = updatedIngredients.map { ingredient in
             var updated = ingredient
             if ingredient.isPreFerment {
-                // Pre-ferment weight stays as entered, update breakdown
-                updated.calculateSubIngredients()
+                // Already calculated
             } else if ingredient.isFlour {
                 updated.weight = mainFlourWeight
                 updated.percentage = 100
@@ -59,6 +70,8 @@ struct CalculationEngine {
             }
             return updated
         }
+
+        return updatedIngredients
     }
 
     // MARK: - Reverse Calculation (weights -> hydration)

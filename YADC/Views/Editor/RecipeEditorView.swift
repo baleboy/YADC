@@ -21,6 +21,7 @@ struct RecipeEditorView: View {
     let originalRecipe: Recipe?
     @State private var viewModel: RecipeViewModel
     @State private var selectedTab: EditorTab = .percentage
+    @State private var showingAddStep = false
 
     init(recipe: Recipe?) {
         self.originalRecipe = recipe
@@ -82,6 +83,15 @@ struct RecipeEditorView: View {
                         dismiss()
                     }
                 }
+                ToolbarItem(placement: .principal) {
+                    if selectedTab == .steps {
+                        Button {
+                            showingAddStep = true
+                        } label: {
+                            Image(systemName: "plus")
+                        }
+                    }
+                }
                 ToolbarItem(placement: .confirmationAction) {
                     if originalRecipe != nil {
                         Menu {
@@ -102,6 +112,10 @@ struct RecipeEditorView: View {
                         .fontWeight(.semibold)
                     }
                 }
+            }
+            .sheet(isPresented: $showingAddStep) {
+                AddStepView()
+                    .environment(viewModel)
             }
         }
         .onAppear {

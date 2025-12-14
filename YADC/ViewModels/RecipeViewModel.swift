@@ -150,6 +150,15 @@ final class RecipeViewModel {
         )
 
         preFerment.calculateSubIngredients()
+
+        // Calculate percentage based on pre-ferment's total weight relative to total flour
+        if mode == .forward {
+            let currentTotalFlour = CalculationEngine.calculateTotalFlour(ingredients: recipe.ingredients)
+            if currentTotalFlour > 0 {
+                preFerment.percentage = (totalWeight / currentTotalFlour) * 100
+            }
+        }
+
         recipe.ingredients.append(preFerment)
 
         if mode == .forward {
@@ -165,10 +174,21 @@ final class RecipeViewModel {
         recipe.ingredients[index].calculateSubIngredients()
 
         if mode == .forward {
+            // Update percentage so pre-ferment scales with recipe
+            let currentTotalFlour = CalculationEngine.calculateTotalFlour(ingredients: recipe.ingredients)
+            if currentTotalFlour > 0 {
+                recipe.ingredients[index].percentage = (totalWeight / currentTotalFlour) * 100
+            }
             recalculateWeights()
         } else {
             recalculateFromWeights()
         }
+    }
+
+    func updatePreFermentPercentage(id: UUID, percentage: Double) {
+        guard let index = recipe.ingredients.firstIndex(where: { $0.id == id && $0.isPreFerment }) else { return }
+        recipe.ingredients[index].percentage = max(0, percentage)
+        recalculateWeights()
     }
 
     func updatePreFermentType(id: UUID, type: PreFermentType) {
