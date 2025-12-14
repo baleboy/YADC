@@ -107,36 +107,94 @@ final class RecipeViewModel {
         recalculateWeights()
     }
 
-    // MARK: - Pre-ferment
+    // MARK: - Pre-ferment Management
 
-    func togglePreFerment(_ enabled: Bool) {
-        recipe.preFerment.isEnabled = enabled
-        recalculateWeights()
+    func addPreFerment(type: PreFermentType, totalWeight: Double, yeastPercentage: Double = 0.1) {
+        let metadata = PreFermentMetadata(
+            type: type,
+            hydration: type.defaultHydration,
+            yeastPercentage: yeastPercentage
+        )
+
+        var preFerment = Ingredient(
+            name: type.displayName,
+            weight: totalWeight,
+            ingredientType: .preFerment,
+            preFermentMetadata: metadata
+        )
+
+        preFerment.calculateSubIngredients()
+        recipe.ingredients.append(preFerment)
+
+        if mode == .forward {
+            recalculateWeights()
+        } else {
+            recalculateFromWeights()
+        }
     }
 
-    func updatePreFermentType(_ type: PreFermentType) {
-        recipe.preFerment.updateType(type)
-        recalculateWeights()
+    func updatePreFermentWeight(id: UUID, totalWeight: Double) {
+        guard let index = recipe.ingredients.firstIndex(where: { $0.id == id && $0.isPreFerment }) else { return }
+        recipe.ingredients[index].weight = max(0, totalWeight)
+        recipe.ingredients[index].calculateSubIngredients()
+
+        if mode == .forward {
+            recalculateWeights()
+        } else {
+            recalculateFromWeights()
+        }
     }
 
-    func updatePreFermentFlour(_ weight: Double) {
-        recipe.preFerment.flourWeight = max(0, weight)
-        recalculateWeights()
+    func updatePreFermentType(id: UUID, type: PreFermentType) {
+        guard let index = recipe.ingredients.firstIndex(where: { $0.id == id && $0.isPreFerment }) else { return }
+
+        if var metadata = recipe.ingredients[index].preFermentMetadata {
+            metadata.type = type
+            if type != .custom {
+                metadata.hydration = type.defaultHydration
+            }
+            recipe.ingredients[index].preFermentMetadata = metadata
+            recipe.ingredients[index].name = type.displayName
+            recipe.ingredients[index].calculateSubIngredients()
+        }
+
+        if mode == .forward {
+            recalculateWeights()
+        } else {
+            recalculateFromWeights()
+        }
     }
 
-    func updatePreFermentTotalWeight(_ weight: Double) {
-        recipe.preFerment.setTotalWeight(max(0, weight))
-        recalculateWeights()
+    func updatePreFermentHydration(id: UUID, hydration: Double) {
+        guard let index = recipe.ingredients.firstIndex(where: { $0.id == id && $0.isPreFerment }) else { return }
+
+        if var metadata = recipe.ingredients[index].preFermentMetadata {
+            metadata.hydration = max(0, min(200, hydration))
+            recipe.ingredients[index].preFermentMetadata = metadata
+            recipe.ingredients[index].calculateSubIngredients()
+        }
+
+        if mode == .forward {
+            recalculateWeights()
+        } else {
+            recalculateFromWeights()
+        }
     }
 
-    func updatePreFermentHydration(_ hydration: Double) {
-        recipe.preFerment.hydration = max(0, min(200, hydration))
-        recalculateWeights()
-    }
+    func updatePreFermentYeast(id: UUID, yeastPercentage: Double) {
+        guard let index = recipe.ingredients.firstIndex(where: { $0.id == id && $0.isPreFerment }) else { return }
 
-    func updatePreFermentYeast(_ percentage: Double) {
-        recipe.preFerment.yeastPercentage = max(0, min(10, percentage))
-        recalculateWeights()
+        if var metadata = recipe.ingredients[index].preFermentMetadata {
+            metadata.yeastPercentage = max(0, min(10, yeastPercentage))
+            recipe.ingredients[index].preFermentMetadata = metadata
+            recipe.ingredients[index].calculateSubIngredients()
+        }
+
+        if mode == .forward {
+            recalculateWeights()
+        } else {
+            recalculateFromWeights()
+        }
     }
 
     // MARK: - Settings

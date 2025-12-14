@@ -18,7 +18,6 @@ struct CalculatorView: View {
                 ModeToggleView()
                 HydrationSection()
                 IngredientsListView(showingAddIngredient: $showingAddIngredient)
-                PreFermentSection()
             }
             .scrollContentBackground(.hidden)
             .background(Color("CreamBackground"))

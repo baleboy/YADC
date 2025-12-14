@@ -24,31 +24,31 @@ struct RecipeView: View {
                     .listRowBackground(Color("FormRowBackground"))
                 }
 
-                if viewModel.recipe.preFerment.isEnabled {
-                    Section("Pre-ferment (\(viewModel.recipe.preFerment.type.displayName))") {
+                if let preFerment = viewModel.recipe.ingredients.first(where: { $0.isPreFerment }) {
+                    Section("Pre-ferment (\(preFerment.preFermentMetadata?.type.displayName ?? ""))") {
                         RecipeIngredientRow(
-                            name: "Flour",
-                            weight: viewModel.displayWeight(viewModel.recipe.preFerment.flourWeight),
+                            name: "Total",
+                            weight: viewModel.displayWeight(preFerment.weight),
                             unit: viewModel.weightUnit
                         )
                         .listRowBackground(Color("FormRowBackground"))
-                        RecipeIngredientRow(
-                            name: "Water",
-                            weight: viewModel.displayWeight(viewModel.recipe.preFerment.waterWeight),
-                            unit: viewModel.weightUnit
-                        )
-                        .listRowBackground(Color("FormRowBackground"))
-                        RecipeIngredientRow(
-                            name: "Yeast",
-                            weight: viewModel.displayWeight(viewModel.recipe.preFerment.yeastWeight),
-                            unit: viewModel.weightUnit
-                        )
-                        .listRowBackground(Color("FormRowBackground"))
+
+                        if let subIngredients = preFerment.subIngredients {
+                            ForEach(subIngredients) { sub in
+                                RecipeIngredientRow(
+                                    name: "  \(sub.name)",
+                                    weight: viewModel.displayWeight(sub.weight),
+                                    unit: viewModel.weightUnit
+                                )
+                                .font(.caption)
+                                .listRowBackground(Color("FormRowBackground"))
+                            }
+                        }
                     }
                 }
 
                 Section("Main Dough") {
-                    ForEach(viewModel.recipe.ingredients) { ingredient in
+                    ForEach(viewModel.recipe.ingredients.filter { !$0.isPreFerment }) { ingredient in
                         RecipeIngredientRow(
                             name: ingredient.name,
                             weight: viewModel.displayWeight(ingredient.weight),

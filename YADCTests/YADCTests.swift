@@ -22,8 +22,7 @@ struct CalculationEngineTests {
                 Ingredient(name: "Water", percentage: 65, isWater: true),
                 Ingredient(name: "Salt", percentage: 2.5),
                 Ingredient(name: "Yeast", percentage: 0.5)
-            ],
-            preFerment: PreFerment.default
+            ]
         )
 
         let result = CalculationEngine.calculateWeights(recipe: recipe)
@@ -50,8 +49,7 @@ struct CalculationEngineTests {
             ingredients: [
                 Ingredient(name: "Flour", percentage: 100, isFlour: true),
                 Ingredient(name: "Water", percentage: 65, isWater: true)
-            ],
-            preFerment: PreFerment.default
+            ]
         )
 
         let result = CalculationEngine.calculateWeights(recipe: recipe, doughResiduePercentage: 5)
@@ -72,8 +70,7 @@ struct CalculationEngineTests {
                 Ingredient(name: "Flour", percentage: 100, isFlour: true),
                 Ingredient(name: "Water", percentage: 80, isWater: true),
                 Ingredient(name: "Salt", percentage: 2)
-            ],
-            preFerment: PreFerment.default
+            ]
         )
 
         let result = CalculationEngine.calculateWeights(recipe: recipe)
@@ -88,13 +85,15 @@ struct CalculationEngineTests {
     }
 
     @Test func forwardCalculation_withPreFerment() {
-        var preFerment = PreFerment(
-            type: .poolish,
-            flourWeight: 100,
-            hydration: 100,
-            yeastPercentage: 0.1,
-            isEnabled: true
+        // Create a poolish pre-ferment with 100g flour, 100g water
+        let metadata = PreFermentMetadata(type: .poolish, hydration: 100, yeastPercentage: 0.1)
+        var poolish = Ingredient(
+            name: "Poolish",
+            weight: 200.1, // flour + water + yeast
+            ingredientType: .preFerment,
+            preFermentMetadata: metadata
         )
+        poolish.calculateSubIngredients()
 
         let recipe = Recipe(
             numberOfBalls: 4,
@@ -103,9 +102,9 @@ struct CalculationEngineTests {
             ingredients: [
                 Ingredient(name: "Flour", percentage: 100, isFlour: true),
                 Ingredient(name: "Water", percentage: 65, isWater: true),
-                Ingredient(name: "Salt", percentage: 2.5)
-            ],
-            preFerment: preFerment
+                Ingredient(name: "Salt", percentage: 2.5),
+                poolish
+            ]
         )
 
         let result = CalculationEngine.calculateWeights(recipe: recipe)
@@ -169,8 +168,7 @@ struct CalculationEngineTests {
                 Ingredient(name: "Flour", percentage: 0, weight: 600, isFlour: true),
                 Ingredient(name: "Water", percentage: 0, weight: 390, isWater: true),
                 Ingredient(name: "Salt", percentage: 0, weight: 15)
-            ],
-            preFerment: PreFerment.default
+            ]
         )
 
         recipe = CalculationEngine.recalculateFromWeights(recipe: recipe)
@@ -182,13 +180,15 @@ struct CalculationEngineTests {
     }
 
     @Test func recalculateFromWeights_withPreFerment() {
-        let preFerment = PreFerment(
-            type: .poolish,
-            flourWeight: 100,
-            hydration: 100,
-            yeastPercentage: 0.1,
-            isEnabled: true
+        // Create a poolish pre-ferment with 100g flour, 100g water
+        let metadata = PreFermentMetadata(type: .poolish, hydration: 100, yeastPercentage: 0.1)
+        var poolish = Ingredient(
+            name: "Poolish",
+            weight: 200.1,
+            ingredientType: .preFerment,
+            preFermentMetadata: metadata
         )
+        poolish.calculateSubIngredients()
 
         var recipe = Recipe(
             numberOfBalls: 4,
@@ -196,9 +196,9 @@ struct CalculationEngineTests {
             hydration: 0,
             ingredients: [
                 Ingredient(name: "Flour", percentage: 0, weight: 500, isFlour: true),
-                Ingredient(name: "Water", percentage: 0, weight: 290, isWater: true)
-            ],
-            preFerment: preFerment
+                Ingredient(name: "Water", percentage: 0, weight: 290, isWater: true),
+                poolish
+            ]
         )
 
         recipe = CalculationEngine.recalculateFromWeights(recipe: recipe)
@@ -229,23 +229,44 @@ struct CalculationEngineTests {
 
     // MARK: - Pre-ferment Tests
 
-    @Test func preFerment_poolishDefaults() {
-        let preFerment = PreFerment(
-            type: .poolish,
-            flourWeight: 100,
-            hydration: 100,
-            yeastPercentage: 0.1,
-            isEnabled: true
+    @Test func preFerment_poolishCalculation() {
+        let metadata = PreFermentMetadata(type: .poolish, hydration: 100, yeastPercentage: 0.1)
+        var poolish = Ingredient(
+            name: "Poolish",
+            weight: 200.1,
+            ingredientType: .preFerment,
+            preFermentMetadata: metadata
         )
+        poolish.calculateSubIngredients()
 
-        #expect(preFerment.waterWeight == 100)
-        #expect(preFerment.totalWeight > 200)
+        let flour = poolish.subIngredients?.first { $0.isFlour }
+        let water = poolish.subIngredients?.first { $0.isWater }
+
+        #expect(flour?.weight ?? 0 > 99 && flour?.weight ?? 0 < 101)
+        #expect(water?.weight ?? 0 > 99 && water?.weight ?? 0 < 101)
     }
 
     @Test func preFerment_bigaDefaults() {
-        var preFerment = PreFerment.default
-        preFerment.updateType(.biga)
+        let bigaType = PreFermentType.biga
+        #expect(bigaType.defaultHydration == 55.0)
+    }
 
-        #expect(preFerment.hydration == 55.0)
+    @Test func preFerment_subIngredientCalculation() {
+        let metadata = PreFermentMetadata(type: .custom, hydration: 75, yeastPercentage: 0.2)
+        var preFerment = Ingredient(
+            name: "Custom",
+            weight: 175.2, // Should calculate to ~100g flour, 75g water, 0.2g yeast
+            ingredientType: .preFerment,
+            preFermentMetadata: metadata
+        )
+        preFerment.calculateSubIngredients()
+
+        let flour = preFerment.subIngredients?.first { $0.isFlour }
+        let water = preFerment.subIngredients?.first { $0.isWater }
+        let yeast = preFerment.subIngredients?.first { !$0.isFlour && !$0.isWater }
+
+        #expect(flour?.weight ?? 0 > 99 && flour?.weight ?? 0 < 101)
+        #expect(water?.weight ?? 0 > 74 && water?.weight ?? 0 < 76)
+        #expect(yeast?.weight ?? 0 > 0.19 && yeast?.weight ?? 0 < 0.21)
     }
 }

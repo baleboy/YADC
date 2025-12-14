@@ -12,7 +12,9 @@ struct IngredientRowView: View {
     let ingredient: Ingredient
 
     var body: some View {
-        if viewModel.mode == .forward && !ingredient.isFlour && !ingredient.isWater {
+        if ingredient.isPreFerment {
+            preFermentView
+        } else if viewModel.mode == .forward && !ingredient.isFlour && !ingredient.isWater {
             VStack {
                 HStack {
                     Text(ingredient.name)
@@ -87,6 +89,51 @@ struct IngredientRowView: View {
         .textFieldStyle(.roundedBorder)
         Text(viewModel.weightUnit)
             .foregroundStyle(Color("TextSecondary"))
+    }
+
+    @ViewBuilder
+    private var preFermentView: some View {
+        DisclosureGroup {
+            if let subIngredients = ingredient.subIngredients {
+                ForEach(subIngredients) { sub in
+                    HStack {
+                        Text("  \(sub.name)")
+                            .font(.caption)
+                        Spacer()
+                        Text("\(viewModel.displayWeight(sub.weight).weightFormatted) \(viewModel.weightUnit)")
+                            .font(.caption)
+                            .foregroundStyle(Color("TextSecondary"))
+                    }
+                }
+            }
+        } label: {
+            HStack {
+                Text(ingredient.name)
+                    .font(.body.weight(.medium))
+                if let metadata = ingredient.preFermentMetadata {
+                    Text("(\(metadata.type.displayName))")
+                        .font(.caption)
+                        .foregroundStyle(Color("TextSecondary"))
+                }
+                Spacer()
+                if viewModel.mode == .reverse {
+                    TextField("", value: Binding(
+                        get: { viewModel.displayWeight(ingredient.weight) },
+                        set: { viewModel.updatePreFermentWeight(id: ingredient.id, totalWeight: viewModel.weightFromInput($0)) }
+                    ), format: .number.precision(.fractionLength(0...1)))
+                    .keyboardType(.decimalPad)
+                    .multilineTextAlignment(.trailing)
+                    .frame(width: 60)
+                    .textFieldStyle(.roundedBorder)
+                } else {
+                    Text("\(viewModel.displayWeight(ingredient.weight).weightFormatted)")
+                        .foregroundStyle(Color("TextSecondary"))
+                }
+                Text(viewModel.weightUnit)
+                    .foregroundStyle(Color("TextSecondary"))
+            }
+        }
+        .tint(Color("AccentColor"))
     }
 }
 

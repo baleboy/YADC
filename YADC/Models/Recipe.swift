@@ -12,37 +12,20 @@ struct Recipe: Codable, Equatable {
     var weightPerBall: Double
     var hydration: Double
     var ingredients: [Ingredient]
-    var preFerment: PreFerment
     var steps: [Step]
-
-    enum CodingKeys: String, CodingKey {
-        case numberOfBalls, weightPerBall, hydration, ingredients, preFerment, steps
-    }
 
     init(
         numberOfBalls: Int,
         weightPerBall: Double,
         hydration: Double,
         ingredients: [Ingredient],
-        preFerment: PreFerment,
         steps: [Step] = []
     ) {
         self.numberOfBalls = numberOfBalls
         self.weightPerBall = weightPerBall
         self.hydration = hydration
         self.ingredients = ingredients
-        self.preFerment = preFerment
         self.steps = steps
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        numberOfBalls = try container.decode(Int.self, forKey: .numberOfBalls)
-        weightPerBall = try container.decode(Double.self, forKey: .weightPerBall)
-        hydration = try container.decode(Double.self, forKey: .hydration)
-        ingredients = try container.decode([Ingredient].self, forKey: .ingredients)
-        preFerment = try container.decode(PreFerment.self, forKey: .preFerment)
-        steps = try container.decodeIfPresent([Step].self, forKey: .steps) ?? []
     }
 
     var totalDoughWeight: Double {
@@ -51,9 +34,7 @@ struct Recipe: Codable, Equatable {
 
     /// Total weight calculated from ingredient weights (for reverse mode)
     var totalIngredientWeight: Double {
-        let ingredientSum = ingredients.reduce(0) { $0 + $1.weight }
-        let preFermentSum = preFerment.isEnabled ? preFerment.totalWeight : 0
-        return ingredientSum + preFermentSum
+        ingredients.reduce(0) { $0 + $1.weight }
     }
 
     var flour: Ingredient? {
@@ -78,7 +59,6 @@ struct Recipe: Codable, Equatable {
             Ingredient(name: "Salt", percentage: 2.5),
             Ingredient(name: "Yeast", percentage: 0.5)
         ],
-        preFerment: PreFerment.default,
         steps: []
     )
 }

@@ -27,9 +27,16 @@ struct CalculationEngine {
         // Total flour weight calculation (includes pre-ferment flour)
         let totalFlourWeight = adjustedWeight * 100 / totalPercentage
 
-        // Account for pre-ferment contributions
-        let preFermentFlour = recipe.preFerment.isEnabled ? recipe.preFerment.flourWeight : 0
-        let preFermentWater = recipe.preFerment.isEnabled ? recipe.preFerment.waterWeight : 0
+        // Account for pre-ferment contributions from subIngredients
+        var preFermentFlour: Double = 0
+        var preFermentWater: Double = 0
+
+        for ingredient in recipe.ingredients where ingredient.isPreFerment {
+            if let subIngredients = ingredient.subIngredients {
+                preFermentFlour += subIngredients.first(where: { $0.isFlour })?.weight ?? 0
+                preFermentWater += subIngredients.first(where: { $0.isWater })?.weight ?? 0
+            }
+        }
 
         // Main dough flour and water (subtract pre-ferment amounts)
         let mainFlourWeight = max(0, totalFlourWeight - preFermentFlour)
@@ -38,7 +45,10 @@ struct CalculationEngine {
 
         return recipe.ingredients.map { ingredient in
             var updated = ingredient
-            if ingredient.isFlour {
+            if ingredient.isPreFerment {
+                // Pre-ferment weight stays as entered, update breakdown
+                updated.calculateSubIngredients()
+            } else if ingredient.isFlour {
                 updated.weight = mainFlourWeight
                 updated.percentage = 100
             } else if ingredient.isWater {
@@ -83,33 +93,23 @@ struct CalculationEngine {
     static func recalculateFromWeights(recipe: Recipe) -> Recipe {
         var updated = recipe
 
-        // Get flour and water weights from main dough
-        let mainFlourWeight = recipe.flour?.weight ?? 0
-        let mainWaterWeight = recipe.water?.weight ?? 0
-
-        // Add pre-ferment contributions for total hydration calculation
-        let preFermentFlour = recipe.preFerment.isEnabled ? recipe.preFerment.flourWeight : 0
-        let preFermentWater = recipe.preFerment.isEnabled ? recipe.preFerment.waterWeight : 0
-
-        // Add contributions from other ingredients
-        let contributingFlourWeight = recipe.otherIngredients
-            .filter { $0.hydrationContribution == .flour }
-            .reduce(0) { $0 + $1.weight }
-        let contributingWaterWeight = recipe.otherIngredients
-            .filter { $0.hydrationContribution == .water }
-            .reduce(0) { $0 + $1.weight }
-
-        let totalFlourWeight = mainFlourWeight + preFermentFlour + contributingFlourWeight
-        let totalWaterWeight = mainWaterWeight + preFermentWater + contributingWaterWeight
+        // Calculate total flour and water using helper methods (includes pre-ferment)
+        let totalFlourWeight = calculateTotalFlour(ingredients: recipe.ingredients)
+        let totalWaterWeight = calculateTotalWater(ingredients: recipe.ingredients)
 
         // Calculate overall hydration
         updated.hydration = calculateHydration(flourWeight: totalFlourWeight, waterWeight: totalWaterWeight)
 
-        // Update all percentages based on total flour
+        // Update all percentages based on total flour and recalculate pre-ferment breakdowns
         updated.ingredients = calculatePercentagesWithTotalFlour(
             ingredients: recipe.ingredients,
             totalFlourWeight: totalFlourWeight
-        )
+        ).map { ingredient in
+            if ingredient.isPreFerment {
+                return updatePreFermentBreakdown(ingredient: ingredient)
+            }
+            return ingredient
+        }
 
         return updated
     }
@@ -130,6 +130,53 @@ struct CalculationEngine {
             }
             return updated
         }
+    }
+
+    // MARK: - Pre-ferment Helpers
+
+    /// Calculate total flour weight from all sources including pre-ferment
+    static func calculateTotalFlour(ingredients: [Ingredient]) -> Double {
+        var totalFlour: Double = 0
+
+        for ingredient in ingredients {
+            if ingredient.isPreFerment {
+                if let subIngredients = ingredient.subIngredients {
+                    totalFlour += subIngredients.first(where: { $0.isFlour })?.weight ?? 0
+                }
+            } else if ingredient.isFlour {
+                totalFlour += ingredient.weight
+            } else if ingredient.hydrationContribution == .flour {
+                totalFlour += ingredient.weight
+            }
+        }
+
+        return totalFlour
+    }
+
+    /// Calculate total water weight from all sources including pre-ferment
+    static func calculateTotalWater(ingredients: [Ingredient]) -> Double {
+        var totalWater: Double = 0
+
+        for ingredient in ingredients {
+            if ingredient.isPreFerment {
+                if let subIngredients = ingredient.subIngredients {
+                    totalWater += subIngredients.first(where: { $0.isWater })?.weight ?? 0
+                }
+            } else if ingredient.isWater {
+                totalWater += ingredient.weight
+            } else if ingredient.hydrationContribution == .water {
+                totalWater += ingredient.weight
+            }
+        }
+
+        return totalWater
+    }
+
+    /// Update pre-ferment breakdown based on total weight and metadata
+    static func updatePreFermentBreakdown(ingredient: Ingredient) -> Ingredient {
+        var updated = ingredient
+        updated.calculateSubIngredients()
+        return updated
     }
 
     // MARK: - Unit Conversion
