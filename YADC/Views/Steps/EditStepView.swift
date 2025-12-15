@@ -44,7 +44,7 @@ struct EditStepView: View {
 
                     if hasWaitingTime {
                         Stepper(
-                            "\(waitingTimeMinutes) minutes",
+                            formatDuration(waitingTimeMinutes),
                             value: $waitingTimeMinutes,
                             in: 1...1440,
                             step: stepValue
@@ -53,12 +53,12 @@ struct EditStepView: View {
                         .listRowBackground(Color("FormRowBackground"))
 
                         HStack {
-                            ForEach([15, 30, 60, 120], id: \.self) { minutes in
+                            ForEach([30, 60, 120, 720, 1440], id: \.self) { minutes in
                                 Button(formatQuickTime(minutes)) {
                                     waitingTimeMinutes = minutes
                                 }
                                 .buttonStyle(.bordered)
-                                .tint(Color("AccentColor"))
+                                .tint(minutes >= 720 ? Color("TextSecondary") : Color("AccentColor"))
                             }
                         }
                         .listRowBackground(Color("FormRowBackground"))
@@ -123,8 +123,10 @@ struct EditStepView: View {
             return 5
         } else if waitingTimeMinutes < 180 {
             return 15
-        } else {
+        } else if waitingTimeMinutes < 360 {
             return 30
+        } else {
+            return 60
         }
     }
 
@@ -139,6 +141,20 @@ struct EditStepView: View {
 
     private func formatQuickTime(_ minutes: Int) -> String {
         minutes >= 60 ? "\(minutes / 60)h" : "\(minutes)m"
+    }
+
+    private func formatDuration(_ minutes: Int) -> String {
+        if minutes < 60 {
+            return "\(minutes) min"
+        } else {
+            let hours = minutes / 60
+            let mins = minutes % 60
+            if mins == 0 {
+                return "\(hours)h"
+            } else {
+                return "\(hours)h \(mins)m"
+            }
+        }
     }
 
     private func saveStep() {
