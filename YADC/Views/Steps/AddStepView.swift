@@ -75,9 +75,16 @@ struct AddStepView: View {
                         }
                         .listRowBackground(Color("FormRowBackground"))
 
-                        Slider(value: $temperature, in: temperatureRange, step: 1)
-                            .tint(Color("AccentColor"))
-                            .listRowBackground(Color("FormRowBackground"))
+                        HStack {
+                            ForEach(temperaturePresets, id: \.self) { temp in
+                                Button("\(Int(temp))°") {
+                                    temperature = temp
+                                }
+                                .buttonStyle(.bordered)
+                                .tint(temp >= bakingThreshold ? Color("TextSecondary") : Color("AccentColor"))
+                            }
+                        }
+                        .listRowBackground(Color("FormRowBackground"))
                     }
                 }
             }
@@ -114,12 +121,21 @@ struct AddStepView: View {
         }
     }
 
-    private var temperatureRange: ClosedRange<Double> {
+    private var temperaturePresets: [Double] {
         switch viewModel.settings.unitSystem {
         case .metric:
-            return 0...50
+            return [25, 30, 180, 220, 250]
         case .imperial:
-            return 32...122
+            return [77, 86, 350, 425, 480]
+        }
+    }
+
+    private var bakingThreshold: Double {
+        switch viewModel.settings.unitSystem {
+        case .metric:
+            return 100
+        case .imperial:
+            return 200
         }
     }
 
