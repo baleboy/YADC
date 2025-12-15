@@ -19,13 +19,19 @@ struct RecipeEditorView: View {
     @Environment(\.dismiss) private var dismiss
 
     let originalRecipe: Recipe?
+    let initialMode: CalculatorMode
     @State private var viewModel: RecipeViewModel
     @State private var selectedTab: EditorTab = .percentage
     @State private var showingAddStep = false
 
-    init(recipe: Recipe?) {
+    /// For new recipes, specify the initial mode. For editing, mode is always forward.
+    init(recipe: Recipe?, initialMode: CalculatorMode = .forward) {
         self.originalRecipe = recipe
+        // When editing an existing recipe, always use forward mode
+        self.initialMode = recipe != nil ? .forward : initialMode
         _viewModel = State(initialValue: RecipeViewModel(recipe: recipe))
+        // Set initial tab based on mode
+        _selectedTab = State(initialValue: initialMode == .reverse && recipe == nil ? .weight : .percentage)
     }
 
     var body: some View {
@@ -41,19 +47,25 @@ struct RecipeEditorView: View {
                 .padding()
                 .background(Color("CreamBackground"))
 
-                // Tab bar for mode switching
+                // Tab bar - show only relevant mode tab based on initialMode
                 TabView(selection: $selectedTab) {
-                    PercentageModeView()
-                        .tabItem {
-                            Label("By Percentage", systemImage: "percent")
-                        }
-                        .tag(EditorTab.percentage)
+                    // Show percentage tab for forward mode or when editing existing recipes
+                    if initialMode == .forward {
+                        PercentageModeView()
+                            .tabItem {
+                                Label("Recipe", systemImage: "percent")
+                            }
+                            .tag(EditorTab.percentage)
+                    }
 
-                    WeightModeView()
-                        .tabItem {
-                            Label("By Weight", systemImage: "scalemass")
-                        }
-                        .tag(EditorTab.weight)
+                    // Show weight tab only for new recipes in reverse mode
+                    if initialMode == .reverse && originalRecipe == nil {
+                        WeightModeView()
+                            .tabItem {
+                                Label("Recipe", systemImage: "scalemass")
+                            }
+                            .tag(EditorTab.weight)
+                    }
 
                     StepsEditorView()
                         .tabItem {
@@ -120,21 +132,11 @@ struct RecipeEditorView: View {
         }
         .onAppear {
             viewModel.store = store
-            // Set initial mode based on tab
-            if selectedTab == .weight {
+            // Set mode once based on initialMode
+            if initialMode == .reverse {
                 viewModel.switchToReverseMode()
             } else {
                 viewModel.switchToForwardMode()
-            }
-        }
-        .onChange(of: selectedTab) { _, newTab in
-            switch newTab {
-            case .percentage:
-                viewModel.switchToForwardMode()
-            case .weight:
-                viewModel.switchToReverseMode()
-            case .steps, .preview:
-                break // No mode change for steps or preview
             }
         }
     }

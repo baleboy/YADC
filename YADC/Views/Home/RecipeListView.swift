@@ -9,7 +9,7 @@ import SwiftUI
 
 struct RecipeListView: View {
     @Environment(RecipeStore.self) private var store
-    @State private var showingNewRecipeEditor = false
+    @State private var showingEntryModePicker = false
     @State private var selectedRecipe: Recipe?
 
     var body: some View {
@@ -42,15 +42,15 @@ struct RecipeListView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        showingNewRecipeEditor = true
+                        showingEntryModePicker = true
                     } label: {
                         Image(systemName: "plus")
                     }
                 }
             }
             .toolbarBackground(Color("CreamBackground"), for: .navigationBar)
-            .fullScreenCover(isPresented: $showingNewRecipeEditor) {
-                RecipeEditorView(recipe: nil)
+            .fullScreenCover(isPresented: $showingEntryModePicker) {
+                NewRecipeEntryModeView()
             }
         }
     }
