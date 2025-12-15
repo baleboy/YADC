@@ -60,19 +60,13 @@ struct AddStepView: View {
                         .listRowBackground(Color("FormRowBackground"))
 
                     if hasTemperature {
-                        HStack {
-                            TextField(
-                                "",
-                                value: $temperature,
-                                format: .number.precision(.fractionLength(0))
-                            )
-                            .keyboardType(.decimalPad)
-                            .themedTextField()
-                            .frame(width: 80)
-
-                            Text(viewModel.temperatureUnit)
-                                .foregroundStyle(Color("TextSecondary"))
-                        }
+                        Stepper(
+                            "\(Int(temperature)) \(viewModel.temperatureUnit)",
+                            value: $temperature,
+                            in: temperatureRange,
+                            step: temperatureStep
+                        )
+                        .tint(Color("AccentColor"))
                         .listRowBackground(Color("FormRowBackground"))
 
                         HStack {
@@ -136,6 +130,23 @@ struct AddStepView: View {
             return 100
         case .imperial:
             return 200
+        }
+    }
+
+    private var temperatureRange: ClosedRange<Double> {
+        switch viewModel.settings.unitSystem {
+        case .metric:
+            return 0...300
+        case .imperial:
+            return 32...570
+        }
+    }
+
+    private var temperatureStep: Double {
+        if temperature < bakingThreshold {
+            return 1
+        } else {
+            return viewModel.settings.unitSystem == .metric ? 5 : 10
         }
     }
 
