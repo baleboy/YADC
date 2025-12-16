@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct NewRecipeEntryModeView: View {
+    @Environment(RecipeStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @State private var selectedMode: CalculatorMode?
-    @State private var showingEditor = false
 
     var body: some View {
         NavigationStack {
@@ -24,7 +24,6 @@ struct NewRecipeEntryModeView: View {
                     // By Percentage option
                     Button {
                         selectedMode = .forward
-                        showingEditor = true
                     } label: {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
@@ -50,7 +49,6 @@ struct NewRecipeEntryModeView: View {
                     // By Weight option
                     Button {
                         selectedMode = .reverse
-                        showingEditor = true
                     } label: {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
@@ -89,10 +87,11 @@ struct NewRecipeEntryModeView: View {
                     }
                 }
             }
-            .fullScreenCover(isPresented: $showingEditor) {
-                if let mode = selectedMode {
-                    RecipeEditorView(recipe: nil, initialMode: mode)
-                }
+            .fullScreenCover(item: $selectedMode, onDismiss: {
+                dismiss()
+            }) { mode in
+                RecipeEditorView(recipe: nil, initialMode: mode)
+                    .environment(store)
             }
         }
     }

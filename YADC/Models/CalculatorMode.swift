@@ -7,7 +7,9 @@
 
 import Foundation
 
-enum CalculatorMode: String, Codable {
+enum CalculatorMode: String, Codable, Identifiable {
     case forward
     case reverse
+
+    var id: String { rawValue }
 }

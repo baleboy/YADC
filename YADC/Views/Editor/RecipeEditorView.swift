@@ -28,10 +28,12 @@ struct RecipeEditorView: View {
     init(recipe: Recipe?, initialMode: CalculatorMode = .forward) {
         self.originalRecipe = recipe
         // When editing an existing recipe, always use forward mode
-        self.initialMode = recipe != nil ? .forward : initialMode
+        self.initialMode = (recipe != nil ? .forward : initialMode)
         _viewModel = State(initialValue: RecipeViewModel(recipe: recipe))
         // Set initial tab based on mode
         _selectedTab = State(initialValue: initialMode == .reverse && recipe == nil ? .weight : .percentage)
+        
+        print("Calling init")
     }
 
     var body: some View {

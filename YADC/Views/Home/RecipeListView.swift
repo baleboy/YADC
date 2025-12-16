@@ -51,6 +51,7 @@ struct RecipeListView: View {
             .toolbarBackground(Color("CreamBackground"), for: .navigationBar)
             .fullScreenCover(isPresented: $showingEntryModePicker) {
                 NewRecipeEntryModeView()
+                    .environment(store)
             }
         }
     }
