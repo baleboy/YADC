@@ -12,9 +12,11 @@ import UserNotifications
 final class TimerService {
     static let shared = TimerService()
 
+    private static let storageKey = "activeTimers"
+
     private(set) var activeTimers: [UUID: TimerState] = [:]
 
-    struct TimerState {
+    struct TimerState: Codable {
         let stepId: UUID
         let stepDescription: String
         var startTime: Date
@@ -39,7 +41,9 @@ final class TimerService {
         }
     }
 
-    private init() {}
+    private init() {
+        loadTimers()
+    }
 
     // MARK: - Notification Permissions
 
@@ -68,12 +72,14 @@ final class TimerService {
 
         activeTimers[step.id] = state
         scheduleNotification(for: state)
+        saveTimers()
     }
 
     func stopTimer(for stepId: UUID) {
         guard let state = activeTimers[stepId] else { return }
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [state.notificationId])
         activeTimers.removeValue(forKey: stepId)
+        saveTimers()
     }
 
     func pauseTimer(for stepId: UUID) {
@@ -86,6 +92,7 @@ final class TimerService {
         state.remainingSecondsWhenPaused = state.remainingSeconds
         state.isPaused = true
         activeTimers[stepId] = state
+        saveTimers()
     }
 
     func resumeTimer(for stepId: UUID) {
@@ -103,6 +110,7 @@ final class TimerService {
 
         // Reschedule notification
         scheduleNotification(for: state)
+        saveTimers()
     }
 
     func isTimerActive(for stepId: UUID) -> Bool {
@@ -145,9 +153,37 @@ final class TimerService {
     // MARK: - Timer Updates
 
     func updateTimers() {
+        var changed = false
         for (stepId, state) in activeTimers {
             if state.isExpired {
                 activeTimers.removeValue(forKey: stepId)
+                changed = true
+            }
+        }
+        if changed {
+            saveTimers()
+        }
+    }
+
+    // MARK: - Persistence
+
+    private func saveTimers() {
+        let timersArray = Array(activeTimers.values)
+        if let data = try? JSONEncoder().encode(timersArray) {
+            UserDefaults.standard.set(data, forKey: Self.storageKey)
+        }
+    }
+
+    private func loadTimers() {
+        guard let data = UserDefaults.standard.data(forKey: Self.storageKey),
+              let timersArray = try? JSONDecoder().decode([TimerState].self, from: data) else {
+            return
+        }
+
+        activeTimers = [:]
+        for timer in timersArray {
+            if !timer.isExpired {
+                activeTimers[timer.stepId] = timer
             }
         }
     }
