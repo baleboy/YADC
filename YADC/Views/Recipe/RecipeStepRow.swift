@@ -108,9 +108,8 @@ struct RecipeStepRow: View {
     }
 
     private func formatTime(_ seconds: Int) -> String {
-        let mins = seconds / 60
-        let secs = seconds % 60
-        return String(format: "%d:%02d", mins, secs)
+        let totalMinutes = (seconds + 59) / 60  // Round up to nearest minute
+        return formatDuration(totalMinutes)
     }
 
     private func formatDuration(_ minutes: Int) -> String {

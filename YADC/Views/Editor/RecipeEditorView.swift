@@ -32,8 +32,6 @@ struct RecipeEditorView: View {
         _viewModel = State(initialValue: RecipeViewModel(recipe: recipe))
         // Set initial tab based on mode
         _selectedTab = State(initialValue: initialMode == .reverse && recipe == nil ? .weight : .percentage)
-        
-        print("Calling init")
     }
 
     var body: some View {

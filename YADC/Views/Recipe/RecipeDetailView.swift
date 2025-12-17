@@ -125,9 +125,14 @@ struct DetailStepRow: View {
     let stepNumber: Int
     let store: RecipeStore
 
-    @State private var refreshTrigger = false
+    @State private var displayedMinutes: Int = 0
+    @State private var progress: Double = 0
 
     private var timerService: TimerService { .shared }
+
+    private var totalSeconds: Int {
+        (step.waitingTimeMinutes ?? 0) * 60
+    }
 
     private var timerIsActive: Bool {
         timerService.isTimerActive(for: step.id)
@@ -152,42 +157,47 @@ struct DetailStepRow: View {
 
             HStack(spacing: 16) {
                 if step.hasTimer {
-                    if timerIsActive, let remaining = remainingSeconds {
-                        HStack(spacing: 8) {
-                            Image(systemName: "timer")
-                                .foregroundStyle(timerIsPaused ? Color.secondary : Color("AccentColor"))
-                            Text(formatTime(remaining))
-                                .monospacedDigit()
-                                .foregroundStyle(timerIsPaused ? Color.secondary : Color("AccentColor"))
+                    if timerIsActive, remainingSeconds != nil {
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "timer")
+                                    .foregroundStyle(timerIsPaused ? Color.secondary : Color("AccentColor"))
+                                Text(formatDuration(displayedMinutes))
+                                    .monospacedDigit()
+                                    .foregroundStyle(timerIsPaused ? Color.secondary : Color("AccentColor"))
 
-                            if timerIsPaused {
+                                if timerIsPaused {
+                                    Button {
+                                        timerService.resumeTimer(for: step.id)
+                                    } label: {
+                                        Image(systemName: "play.fill")
+                                            .font(.caption)
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .tint(Color("AccentColor"))
+                                } else {
+                                    Button {
+                                        timerService.pauseTimer(for: step.id)
+                                    } label: {
+                                        Image(systemName: "pause.fill")
+                                            .font(.caption)
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .tint(Color("TextSecondary"))
+                                }
+
                                 Button {
-                                    timerService.resumeTimer(for: step.id)
+                                    timerService.stopTimer(for: step.id)
                                 } label: {
-                                    Image(systemName: "play.fill")
+                                    Image(systemName: "stop.fill")
                                         .font(.caption)
                                 }
                                 .buttonStyle(.bordered)
-                                .tint(Color("AccentColor"))
-                            } else {
-                                Button {
-                                    timerService.pauseTimer(for: step.id)
-                                } label: {
-                                    Image(systemName: "pause.fill")
-                                        .font(.caption)
-                                }
-                                .buttonStyle(.bordered)
-                                .tint(Color("TextSecondary"))
+                                .tint(Color("TextTertiary"))
                             }
 
-                            Button {
-                                timerService.stopTimer(for: step.id)
-                            } label: {
-                                Image(systemName: "stop.fill")
-                                    .font(.caption)
-                            }
-                            .buttonStyle(.bordered)
-                            .tint(Color("TextTertiary"))
+                            ProgressView(value: progress)
+                                .tint(timerIsPaused ? Color.secondary : Color("AccentColor"))
                         }
                     } else {
                         Button {
@@ -216,16 +226,31 @@ struct DetailStepRow: View {
         .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
             if timerIsActive {
                 timerService.updateTimers()
-                refreshTrigger.toggle()
+                if let seconds = remainingSeconds {
+                    let newMinutes = (seconds + 59) / 60
+                    if newMinutes != displayedMinutes {
+                        displayedMinutes = newMinutes
+                    }
+                    if totalSeconds > 0 {
+                        progress = 1.0 - (Double(seconds) / Double(totalSeconds))
+                    }
+                }
             }
         }
-        .id(refreshTrigger)
-    }
-
-    private func formatTime(_ seconds: Int) -> String {
-        let mins = seconds / 60
-        let secs = seconds % 60
-        return String(format: "%d:%02d", mins, secs)
+        .onAppear {
+            if let seconds = remainingSeconds {
+                displayedMinutes = (seconds + 59) / 60
+                if totalSeconds > 0 {
+                    progress = 1.0 - (Double(seconds) / Double(totalSeconds))
+                }
+            }
+        }
+        .onChange(of: timerIsActive) {
+            if timerIsActive, let seconds = remainingSeconds {
+                displayedMinutes = (seconds + 59) / 60
+                progress = 0
+            }
+        }
     }
 
     private func formatDuration(_ minutes: Int) -> String {
