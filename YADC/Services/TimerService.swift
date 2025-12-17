@@ -128,6 +128,14 @@ final class TimerService {
         return state.remainingSeconds
     }
 
+    func runningTimerCount(for recipe: Recipe) -> Int {
+        recipe.steps.filter { isTimerActive(for: $0.id) }.count
+    }
+
+    func hasRunningTimers(for recipe: Recipe) -> Bool {
+        runningTimerCount(for: recipe) > 0
+    }
+
     // MARK: - Notifications
 
     private func scheduleNotification(for state: TimerState) {
