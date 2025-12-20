@@ -20,10 +20,11 @@ struct RecipeRowView: View {
                     .foregroundStyle(Color("TextPrimary"))
 
                 HStack(spacing: 12) {
-                    Label("\(recipe.numberOfBalls)", systemImage: "circle.fill")
+                    Label("\(recipe.numberOfBalls)", systemImage: "circle.grid.2x2")
                     Label("\(store.displayWeight(recipe.weightPerBall).weightFormatted) \(store.weightUnit)", systemImage: "scalemass")
-                    Label("\(recipe.hydration.percentageFormatted)%", systemImage: "drop")
+                    Label(recipe.hydration.percentageFormatted, systemImage: "drop")
                 }
+                .labelStyle(.titleAndIcon)
                 .font(.subheadline)
                 .foregroundStyle(Color("TextSecondary"))
 
