@@ -27,6 +27,7 @@ struct RecipeListView: View {
                             NavigationLink(value: recipe) {
                                 RecipeRowView(recipe: recipe)
                             }
+                            .listRowInsets(EdgeInsets())
                             .listRowBackground(Color("FormRowBackground"))
                         }
                         .onDelete(perform: deleteRecipes)

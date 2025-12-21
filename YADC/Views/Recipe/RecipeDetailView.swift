@@ -7,12 +7,20 @@
 
 import SwiftUI
 import Combine
+import PhotosUI
+import UIKit
 
 struct RecipeDetailView: View {
     let recipe: Recipe
     @Environment(RecipeStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @State private var showingEditor = false
+    @State private var showingImageSourceSheet = false
+    @State private var showingCamera = false
+    @State private var showingPhotoPicker = false
+    @State private var selectedPhotoItem: PhotosPickerItem?
+
+    private let imageService = ImageService.shared
 
     private var currentRecipe: Recipe {
         store.recipe(withId: recipe.id) ?? recipe
@@ -20,6 +28,12 @@ struct RecipeDetailView: View {
 
     var body: some View {
         List {
+            Section {
+                heroImageView
+            }
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
+
             Section {
                 Stepper("Number of balls: \(currentRecipe.numberOfBalls)",
                         value: Binding(
@@ -101,7 +115,80 @@ struct RecipeDetailView: View {
         .fullScreenCover(isPresented: $showingEditor) {
             RecipeEditorView(recipe: currentRecipe)
         }
+        .fullScreenCover(isPresented: $showingCamera) {
+            CameraView { image in
+                if let image = image {
+                    store.setImage(image, for: currentRecipe.id)
+                }
+            }
+        }
+        .photosPicker(isPresented: $showingPhotoPicker, selection: $selectedPhotoItem, matching: .images)
+        .onChange(of: selectedPhotoItem) { _, newValue in
+            Task {
+                if let item = newValue,
+                   let data = try? await item.loadTransferable(type: Data.self),
+                   let image = UIImage(data: data) {
+                    store.setImage(image, for: currentRecipe.id)
+                }
+                selectedPhotoItem = nil
+            }
+        }
+        .confirmationDialog("Add Photo", isPresented: $showingImageSourceSheet) {
+            Button("Take Photo") {
+                showingCamera = true
+            }
+            Button("Choose from Library") {
+                showingPhotoPicker = true
+            }
+            if currentRecipe.hasImage {
+                Button("Remove Photo", role: .destructive) {
+                    store.setImage(nil, for: currentRecipe.id)
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        }
         .toolbar(.hidden, for: .tabBar)
+    }
+
+    @ViewBuilder
+    private var heroImageView: some View {
+        if currentRecipe.hasImage,
+           let image = imageService.loadImage(for: currentRecipe.id) {
+            ZStack(alignment: .bottomTrailing) {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(height: 250)
+                    .clipped()
+
+                Button {
+                    showingImageSourceSheet = true
+                } label: {
+                    Image(systemName: "pencil.circle.fill")
+                        .font(.title)
+                        .foregroundStyle(.white)
+                        .shadow(radius: 2)
+                }
+                .padding()
+            }
+        } else {
+            Button {
+                showingImageSourceSheet = true
+            } label: {
+                VStack(spacing: 12) {
+                    Image(systemName: "camera.fill")
+                        .font(.largeTitle)
+                    Text("Add Photo")
+                        .font(.headline)
+                }
+                .foregroundStyle(Color("TextSecondary"))
+                .frame(height: 150)
+                .frame(maxWidth: .infinity)
+                .background(Color("FormRowBackground"))
+                .cornerRadius(12)
+            }
+            .padding()
+        }
     }
 }
 

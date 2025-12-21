@@ -17,6 +17,7 @@ struct Recipe: Identifiable, Codable, Equatable, Hashable {
     var steps: [Step]
     var createdAt: Date
     var updatedAt: Date
+    var hasImage: Bool
 
     // Hashable - use id only for navigation purposes
     func hash(into hasher: inout Hasher) {
@@ -32,7 +33,8 @@ struct Recipe: Identifiable, Codable, Equatable, Hashable {
         ingredients: [Ingredient],
         steps: [Step] = [],
         createdAt: Date = Date(),
-        updatedAt: Date = Date()
+        updatedAt: Date = Date(),
+        hasImage: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -43,6 +45,7 @@ struct Recipe: Identifiable, Codable, Equatable, Hashable {
         self.steps = steps
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+        self.hasImage = hasImage
     }
 
     var totalDoughWeight: Double {

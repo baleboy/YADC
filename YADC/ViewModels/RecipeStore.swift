@@ -8,6 +8,7 @@
 import Foundation
 import Observation
 import SwiftUI
+import UIKit
 
 @Observable
 final class RecipeStore {
@@ -15,6 +16,7 @@ final class RecipeStore {
     var settings: Settings
 
     private let persistenceService: PersistenceService
+    private let imageService = ImageService.shared
 
     init(persistenceService: PersistenceService = .shared) {
         self.persistenceService = persistenceService
@@ -48,11 +50,15 @@ final class RecipeStore {
     }
 
     func deleteRecipe(id: UUID) {
+        imageService.deleteImage(for: id)
         recipes.removeAll { $0.id == id }
         saveRecipes()
     }
 
     func deleteRecipes(at offsets: IndexSet) {
+        for index in offsets {
+            imageService.deleteImage(for: recipes[index].id)
+        }
         recipes.remove(atOffsets: offsets)
         saveRecipes()
     }
@@ -67,6 +73,20 @@ final class RecipeStore {
         guard let index = recipes.firstIndex(where: { $0.id == recipeId }) else { return }
         recipes[index].numberOfBalls = max(1, count)
         recipes[index] = recalculateRecipe(recipes[index])
+        saveRecipes()
+    }
+
+    func setImage(_ image: UIImage?, for recipeId: UUID) {
+        guard let index = recipes.firstIndex(where: { $0.id == recipeId }) else { return }
+
+        if let image = image {
+            if imageService.saveImage(image, for: recipeId) {
+                recipes[index].hasImage = true
+            }
+        } else {
+            imageService.deleteImage(for: recipeId)
+            recipes[index].hasImage = false
+        }
         saveRecipes()
     }
 
