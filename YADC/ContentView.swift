@@ -15,6 +15,11 @@ struct ContentView: View {
                     Label("Recipes", systemImage: "book")
                 }
 
+            JournalListView()
+                .tabItem {
+                    Label("Journal", systemImage: "book.pages")
+                }
+
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gear")
@@ -29,4 +34,5 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .environment(RecipeStore())
+        .environment(JournalStore())
 }

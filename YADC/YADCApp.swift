@@ -10,6 +10,7 @@ import SwiftUI
 @main
 struct YADCApp: App {
     @State private var store = RecipeStore()
+    @State private var journalStore = JournalStore()
 
     init() {
         configureAppearance()
@@ -19,6 +20,7 @@ struct YADCApp: App {
         WindowGroup {
             ContentView()
                 .environment(store)
+                .environment(journalStore)
                 .preferredColorScheme(.light)
                 .tint(Color("AccentColor"))
                 .accentColor(Color("AccentColor"))

@@ -15,6 +15,7 @@ final class PersistenceService {
     private let recipesKey = "savedRecipes"
     private let settingsKey = "appSettings"
     private let migrationKey = "didMigrateToMultiRecipe"
+    private let journalEntriesKey = "savedJournalEntries"
 
     private init() {}
 
@@ -82,6 +83,22 @@ final class PersistenceService {
         return settings
     }
 
+    // MARK: - Journal Entries
+
+    func saveJournalEntries(_ entries: [JournalEntry]) {
+        if let encoded = try? JSONEncoder().encode(entries) {
+            defaults.set(encoded, forKey: journalEntriesKey)
+        }
+    }
+
+    func loadJournalEntries() -> [JournalEntry] {
+        guard let data = defaults.data(forKey: journalEntriesKey),
+              let entries = try? JSONDecoder().decode([JournalEntry].self, from: data) else {
+            return []
+        }
+        return entries
+    }
+
     // MARK: - Reset
 
     func resetAll() {
@@ -89,6 +106,7 @@ final class PersistenceService {
         defaults.removeObject(forKey: recipesKey)
         defaults.removeObject(forKey: settingsKey)
         defaults.removeObject(forKey: migrationKey)
+        defaults.removeObject(forKey: journalEntriesKey)
     }
 }
 

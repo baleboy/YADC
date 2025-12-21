@@ -13,12 +13,14 @@ import UIKit
 struct RecipeDetailView: View {
     let recipe: Recipe
     @Environment(RecipeStore.self) private var store
+    @Environment(JournalStore.self) private var journalStore
     @Environment(\.dismiss) private var dismiss
     @State private var showingEditor = false
     @State private var showingImageSourceSheet = false
     @State private var showingCamera = false
     @State private var showingPhotoPicker = false
     @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var showingJournalEditor = false
 
     private let imageService = ImageService.shared
 
@@ -107,8 +109,15 @@ struct RecipeDetailView: View {
         .toolbarBackground(Color("CreamBackground"), for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Edit") {
-                    showingEditor = true
+                HStack {
+                    Button {
+                        showingJournalEditor = true
+                    } label: {
+                        Image(systemName: "book.pages")
+                    }
+                    Button("Edit") {
+                        showingEditor = true
+                    }
                 }
             }
         }
@@ -146,6 +155,9 @@ struct RecipeDetailView: View {
                 }
             }
             Button("Cancel", role: .cancel) { }
+        }
+        .sheet(isPresented: $showingJournalEditor) {
+            JournalEntryEditorView(recipeId: currentRecipe.id)
         }
         .toolbar(.hidden, for: .tabBar)
     }
@@ -358,4 +370,5 @@ struct DetailStepRow: View {
         RecipeDetailView(recipe: Recipe.default)
     }
     .environment(RecipeStore())
+    .environment(JournalStore())
 }
