@@ -69,7 +69,8 @@ struct Recipe: Identifiable, Codable, Equatable, Hashable {
         ingredients.filter { !$0.isFlour && !$0.isWater }
     }
 
-    static let `default` = Recipe(
+    static var `default`: Recipe {
+        Recipe(
         name: "Pizza Dough",
         numberOfBalls: 4,
         weightPerBall: 250,
@@ -81,5 +82,6 @@ struct Recipe: Identifiable, Codable, Equatable, Hashable {
             Ingredient(name: "Yeast", percentage: 0.5)
         ],
         steps: []
-    )
+        )
+    }
 }
