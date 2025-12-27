@@ -13,10 +13,13 @@ final class TimerService {
     static let shared = TimerService()
 
     private static let storageKey = "activeTimers"
+    private static let expiredStorageKey = "expiredTimers"
 
     private(set) var activeTimers: [UUID: TimerState] = [:]
+    private(set) var expiredTimers: [TimerState] = []
 
-    struct TimerState: Codable {
+    struct TimerState: Codable, Identifiable {
+        var id: UUID { stepId }
         let stepId: UUID
         let stepDescription: String
         var startTime: Date
@@ -24,6 +27,7 @@ final class TimerService {
         var notificationId: String
         var isPaused: Bool = false
         var remainingSecondsWhenPaused: Int?
+        var expiredAt: Date?
 
         var endTime: Date {
             startTime.addingTimeInterval(TimeInterval(durationSeconds))
@@ -43,6 +47,7 @@ final class TimerService {
 
     private init() {
         loadTimers()
+        updateTimers()
     }
 
     // MARK: - Notification Permissions
@@ -136,6 +141,26 @@ final class TimerService {
         runningTimerCount(for: recipe) > 0
     }
 
+    var totalRunningTimerCount: Int {
+        activeTimers.values.filter { !$0.isExpired }.count
+    }
+
+    func dismissExpiredTimer(_ timer: TimerState) {
+        expiredTimers.removeAll { $0.stepId == timer.stepId }
+        saveExpiredTimers()
+    }
+
+    func dismissAllExpiredTimers() {
+        expiredTimers.removeAll()
+        saveExpiredTimers()
+    }
+
+    func recipe(for stepId: UUID, in recipes: [Recipe]) -> Recipe? {
+        recipes.first { recipe in
+            recipe.steps.contains { $0.id == stepId }
+        }
+    }
+
     // MARK: - Notifications
 
     private func scheduleNotification(for state: TimerState) {
@@ -164,12 +189,16 @@ final class TimerService {
         var changed = false
         for (stepId, state) in activeTimers {
             if state.isExpired {
+                var expiredState = state
+                expiredState.expiredAt = Date()
+                expiredTimers.insert(expiredState, at: 0)
                 activeTimers.removeValue(forKey: stepId)
                 changed = true
             }
         }
         if changed {
             saveTimers()
+            saveExpiredTimers()
         }
     }
 
@@ -182,17 +211,26 @@ final class TimerService {
         }
     }
 
-    private func loadTimers() {
-        guard let data = UserDefaults.standard.data(forKey: Self.storageKey),
-              let timersArray = try? JSONDecoder().decode([TimerState].self, from: data) else {
-            return
+    private func saveExpiredTimers() {
+        if let data = try? JSONEncoder().encode(expiredTimers) {
+            UserDefaults.standard.set(data, forKey: Self.expiredStorageKey)
         }
+    }
 
-        activeTimers = [:]
-        for timer in timersArray {
-            if !timer.isExpired {
+    private func loadTimers() {
+        // Load active timers
+        if let data = UserDefaults.standard.data(forKey: Self.storageKey),
+           let timersArray = try? JSONDecoder().decode([TimerState].self, from: data) {
+            activeTimers = [:]
+            for timer in timersArray {
                 activeTimers[timer.stepId] = timer
             }
+        }
+
+        // Load expired timers
+        if let data = UserDefaults.standard.data(forKey: Self.expiredStorageKey),
+           let expired = try? JSONDecoder().decode([TimerState].self, from: data) {
+            expiredTimers = expired
         }
     }
 }

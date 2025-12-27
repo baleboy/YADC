@@ -10,10 +10,11 @@ import SwiftUI
 struct RecipeListView: View {
     @Environment(RecipeStore.self) private var store
     @State private var showingEntryModePicker = false
-    @State private var selectedRecipe: Recipe?
+    @State private var navigationPath = NavigationPath()
+    @Binding var navigateToRecipe: Recipe?
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             Group {
                 if store.recipes.isEmpty {
                     ContentUnavailableView {
@@ -54,6 +55,12 @@ struct RecipeListView: View {
                 NewRecipeEntryModeView()
                     .environment(store)
             }
+            .onChange(of: navigateToRecipe) { _, newValue in
+                if let recipe = newValue {
+                    navigationPath.append(recipe)
+                    navigateToRecipe = nil
+                }
+            }
         }
     }
 
@@ -63,6 +70,6 @@ struct RecipeListView: View {
 }
 
 #Preview {
-    RecipeListView()
+    RecipeListView(navigateToRecipe: .constant(nil))
         .environment(RecipeStore())
 }

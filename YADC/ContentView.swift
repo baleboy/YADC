@@ -6,28 +6,56 @@
 //
 
 import SwiftUI
+import Combine
 
 struct ContentView: View {
+    @State private var selectedTab = 0
+    @State private var navigateToRecipe: Recipe?
+    @State private var timerCount = 0
+
+    private var timerService: TimerService { .shared }
+
     var body: some View {
-        TabView {
-            RecipeListView()
+        TabView(selection: $selectedTab) {
+            RecipeListView(navigateToRecipe: $navigateToRecipe)
                 .tabItem {
                     Label("Recipes", systemImage: "book")
                 }
+                .tag(0)
+
+            TimersView(selectedTab: $selectedTab, navigateToRecipe: $navigateToRecipe)
+                .tabItem {
+                    Label("Timers", systemImage: "timer")
+                }
+                .badge(timerCount > 0 ? timerCount : 0)
+                .tag(1)
 
             JournalListView()
                 .tabItem {
                     Label("Journal", systemImage: "book.pages")
                 }
+                .tag(2)
 
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gear")
                 }
+                .tag(3)
         }
         .toolbarBackground(Color("CreamBackground"), for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)
         .tint(Color("AccentColor"))
+        .onAppear {
+            updateTimerCount()
+        }
+        .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
+            updateTimerCount()
+        }
+    }
+
+    private func updateTimerCount() {
+        timerService.updateTimers()
+        timerCount = timerService.totalRunningTimerCount
     }
 }
 
