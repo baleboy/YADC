@@ -219,4 +219,29 @@ struct CalculationEngine {
             return ouncesToGrams(weight)
         }
     }
+
+    // MARK: - Scaling
+
+    /// Scale a recipe's ingredients for a given number of balls
+    static func scaleRecipe(
+        _ recipe: Recipe,
+        numberOfBalls: Int,
+        doughResiduePercentage: Double = 0
+    ) -> [Ingredient] {
+        var scaledRecipe = recipe
+        scaledRecipe.numberOfBalls = numberOfBalls
+        return calculateWeights(recipe: scaledRecipe, doughResiduePercentage: doughResiduePercentage)
+    }
+
+    /// Scale a recipe's ingredients by a multiplier applied to total weight
+    static func scaleRecipeByMultiplier(
+        _ recipe: Recipe,
+        multiplier: Double,
+        doughResiduePercentage: Double = 0
+    ) -> [Ingredient] {
+        var scaledRecipe = recipe
+        // Apply multiplier to weight per ball to scale total weight
+        scaledRecipe.weightPerBall = recipe.weightPerBall * multiplier
+        return calculateWeights(recipe: scaledRecipe, doughResiduePercentage: doughResiduePercentage)
+    }
 }

@@ -48,6 +48,26 @@ struct Recipe: Identifiable, Codable, Equatable, Hashable {
         self.hasImage = hasImage
     }
 
+    // Custom decoder to handle migration from old data without hasImage
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        numberOfBalls = try container.decode(Int.self, forKey: .numberOfBalls)
+        weightPerBall = try container.decode(Double.self, forKey: .weightPerBall)
+        hydration = try container.decode(Double.self, forKey: .hydration)
+        ingredients = try container.decode([Ingredient].self, forKey: .ingredients)
+        steps = try container.decode([Step].self, forKey: .steps)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        // Handle missing hasImage (old data) - default to false
+        hasImage = try container.decodeIfPresent(Bool.self, forKey: .hasImage) ?? false
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, numberOfBalls, weightPerBall, hydration, ingredients, steps, createdAt, updatedAt, hasImage
+    }
+
     var totalDoughWeight: Double {
         Double(numberOfBalls) * weightPerBall
     }

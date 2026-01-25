@@ -21,6 +21,7 @@ struct RecipeDetailView: View {
     @State private var showingPhotoPicker = false
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var showingJournalEditor = false
+    @State private var showingScaleSheet = false
 
     private let imageService = ImageService.shared
 
@@ -111,6 +112,11 @@ struct RecipeDetailView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack {
                     Button {
+                        showingScaleSheet = true
+                    } label: {
+                        Image(systemName: "flame.fill")
+                    }
+                    Button {
                         showingJournalEditor = true
                     } label: {
                         Image(systemName: "book.pages")
@@ -120,6 +126,9 @@ struct RecipeDetailView: View {
                     }
                 }
             }
+        }
+        .sheet(isPresented: $showingScaleSheet) {
+            ScaleRecipeSheet(recipe: currentRecipe)
         }
         .fullScreenCover(isPresented: $showingEditor) {
             RecipeEditorView(recipe: currentRecipe)

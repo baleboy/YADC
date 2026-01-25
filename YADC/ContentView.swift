@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var timerCount = 0
 
     private var timerService: TimerService { .shared }
+    private var bakeService: BakeSessionService { .shared }
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -30,17 +31,24 @@ struct ContentView: View {
                 .badge(timerCount > 0 ? timerCount : 0)
                 .tag(1)
 
+            BakeInProgressView()
+                .tabItem {
+                    Label("Baking", systemImage: "flame")
+                }
+                .badge(bakeService.activeSessionCount > 0 ? bakeService.activeSessionCount : 0)
+                .tag(2)
+
             JournalListView()
                 .tabItem {
                     Label("Journal", systemImage: "book.pages")
                 }
-                .tag(2)
+                .tag(3)
 
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gear")
                 }
-                .tag(3)
+                .tag(4)
         }
         .toolbarBackground(Color("CreamBackground"), for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)
