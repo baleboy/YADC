@@ -79,14 +79,14 @@ struct BakeStepView: View {
                     Text("Your progress will be lost.")
                 }
                 .alert("Bake Complete!", isPresented: $showingCompletionAlert) {
-                    Button("Add to Journal") {
+                    Button("Save") {
                         showingJournalEditor = true
                     }
-                    Button("Done", role: .cancel) {
+                    Button("Discard", role: .destructive) {
                         dismiss()
                     }
                 } message: {
-                    Text("Would you like to add an entry to your journal?")
+                    Text("Would you like to save this bake with notes and photos?")
                 }
                 .sheet(isPresented: $showingJournalEditor, onDismiss: {
                     dismiss()

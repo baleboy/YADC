@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    private var bakeService: BakeSessionService { .shared }
+    @State private var bakeService = BakeSessionService.shared
 
     var body: some View {
         TabView {
@@ -19,14 +19,9 @@ struct ContentView: View {
 
             BakeInProgressView()
                 .tabItem {
-                    Label("Baking", systemImage: "flame")
+                    Label("Bakes", systemImage: "flame")
                 }
-                .badge(bakeService.activeSessionCount > 0 ? bakeService.activeSessionCount : 0)
-
-            JournalListView()
-                .tabItem {
-                    Label("Journal", systemImage: "book.pages")
-                }
+                .badge(bakeService.activeSessionCount)
 
             SettingsView()
                 .tabItem {

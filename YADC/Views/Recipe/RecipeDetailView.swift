@@ -20,7 +20,6 @@ struct RecipeDetailView: View {
     @State private var showingCamera = false
     @State private var showingPhotoPicker = false
     @State private var selectedPhotoItem: PhotosPickerItem?
-    @State private var showingJournalEditor = false
     @State private var showingScaleSheet = false
 
     private let imageService = ImageService.shared
@@ -147,11 +146,6 @@ struct RecipeDetailView: View {
                     } label: {
                         Image(systemName: "flame.fill")
                     }
-                    Button {
-                        showingJournalEditor = true
-                    } label: {
-                        Image(systemName: "book.pages")
-                    }
                     Button("Edit") {
                         showingEditor = true
                     }
@@ -195,9 +189,6 @@ struct RecipeDetailView: View {
                 }
             }
             Button("Cancel", role: .cancel) { }
-        }
-        .sheet(isPresented: $showingJournalEditor) {
-            JournalEntryEditorView(recipeId: currentRecipe.id)
         }
         .toolbar(.hidden, for: .tabBar)
     }
