@@ -27,15 +27,19 @@ struct BakeStepView: View {
 
     var body: some View {
         NavigationStack {
-            if let session = session, let currentStep = session.currentStep {
+            if let session = session {
                 VStack(spacing: 0) {
-                    // Progress header
-                    progressHeader(session: session)
+                    // Progress header (only if there are steps)
+                    if session.totalSteps > 0 {
+                        progressHeader(session: session)
+                    }
 
                     ScrollView {
                         VStack(alignment: .leading, spacing: 24) {
-                            // Step content
-                            stepContent(step: currentStep, stepNumber: session.currentStepIndex + 1)
+                            // Step content (only if there are steps)
+                            if let currentStep = session.currentStep {
+                                stepContent(step: currentStep, stepNumber: session.currentStepIndex + 1)
+                            }
 
                             // Scaled ingredients summary
                             ingredientsSummary(session: session)
@@ -66,10 +70,14 @@ struct BakeStepView: View {
                     Text("Your progress will be lost.")
                 }
                 .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
-                    updateTimerDisplay(for: currentStep)
+                    if let currentStep = session.currentStep {
+                        updateTimerDisplay(for: currentStep)
+                    }
                 }
                 .onAppear {
-                    updateTimerDisplay(for: currentStep)
+                    if let currentStep = session.currentStep {
+                        updateTimerDisplay(for: currentStep)
+                    }
                 }
             } else {
                 ContentUnavailableView(
@@ -230,26 +238,38 @@ struct BakeStepView: View {
     @ViewBuilder
     private func navigationFooter(session: BakeSession) -> some View {
         HStack(spacing: 16) {
-            Button {
-                bakeService.goToPreviousStep(for: sessionId)
-            } label: {
-                Label("Previous", systemImage: "chevron.left")
-            }
-            .disabled(!session.hasPreviousStep)
-            .buttonStyle(.bordered)
-            .tint(Color("AccentColor"))
-
-            Spacer()
-
-            if session.hasNextStep {
+            if session.totalSteps > 0 {
                 Button {
-                    bakeService.advanceStep(for: sessionId)
+                    bakeService.goToPreviousStep(for: sessionId)
                 } label: {
-                    Label("Next", systemImage: "chevron.right")
+                    Label("Previous", systemImage: "chevron.left")
                 }
-                .buttonStyle(.borderedProminent)
+                .disabled(!session.hasPreviousStep)
+                .buttonStyle(.bordered)
                 .tint(Color("AccentColor"))
+
+                Spacer()
+
+                if session.hasNextStep {
+                    Button {
+                        bakeService.advanceStep(for: sessionId)
+                    } label: {
+                        Label("Next", systemImage: "chevron.right")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color("AccentColor"))
+                } else {
+                    Button {
+                        bakeService.completeSession(sessionId)
+                        dismiss()
+                    } label: {
+                        Label("Done", systemImage: "checkmark")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.green)
+                }
             } else {
+                Spacer()
                 Button {
                     bakeService.completeSession(sessionId)
                     dismiss()

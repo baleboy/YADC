@@ -126,27 +126,19 @@ struct ScaleRecipeSheet: View {
                     }
                 }
 
-                if !recipe.steps.isEmpty {
-                    Section {
-                        Button {
-                            startBake()
-                        } label: {
-                            HStack {
-                                Spacer()
-                                Label("Start Baking", systemImage: "flame.fill")
-                                    .fontWeight(.semibold)
-                                Spacer()
-                            }
+                Section {
+                    Button {
+                        startBake()
+                    } label: {
+                        HStack {
+                            Spacer()
+                            Label("Start Baking", systemImage: "flame.fill")
+                                .fontWeight(.semibold)
+                            Spacer()
                         }
-                        .listRowBackground(Color("AccentColor"))
-                        .foregroundStyle(.white)
                     }
-                } else {
-                    Section {
-                        Text("This recipe has no steps. Add steps in the recipe editor to start baking.")
-                            .foregroundStyle(Color("TextSecondary"))
-                            .font(.caption)
-                    }
+                    .listRowBackground(Color("AccentColor"))
+                    .foregroundStyle(.white)
                 }
             }
             .scrollContentBackground(.hidden)
