@@ -14,6 +14,11 @@ struct BakeStepView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var showingCancelAlert = false
+    @State private var showingCompletionAlert = false
+    @State private var showingJournalEditor = false
+    @State private var completedRecipeId: UUID?
+    @State private var isCompleted = false
+    @State private var completedSession: BakeSession?
     @State private var displayedMinutes: Int = 0
     @State private var timerProgress: Double = 0
     @State private var refreshTrigger = false
@@ -22,7 +27,11 @@ struct BakeStepView: View {
     private var timerService: TimerService { .shared }
 
     private var session: BakeSession? {
-        bakeService.session(withId: sessionId)
+        // Use stored session if completed, otherwise get from service
+        if isCompleted {
+            return completedSession
+        }
+        return bakeService.session(withId: sessionId)
     }
 
     var body: some View {
@@ -69,6 +78,23 @@ struct BakeStepView: View {
                 } message: {
                     Text("Your progress will be lost.")
                 }
+                .alert("Bake Complete!", isPresented: $showingCompletionAlert) {
+                    Button("Add to Journal") {
+                        showingJournalEditor = true
+                    }
+                    Button("Done", role: .cancel) {
+                        dismiss()
+                    }
+                } message: {
+                    Text("Would you like to add an entry to your journal?")
+                }
+                .sheet(isPresented: $showingJournalEditor, onDismiss: {
+                    dismiss()
+                }) {
+                    if let recipeId = completedRecipeId {
+                        JournalEntryEditorView(recipeId: recipeId)
+                    }
+                }
                 .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
                     if let currentStep = session.currentStep {
                         updateTimerDisplay(for: currentStep)
@@ -80,11 +106,24 @@ struct BakeStepView: View {
                     }
                 }
             } else {
-                ContentUnavailableView(
-                    "Bake Not Found",
-                    systemImage: "exclamationmark.triangle",
-                    description: Text("This bake session is no longer available.")
-                )
+                VStack {
+                    Spacer()
+                    ContentUnavailableView(
+                        "Bake Not Found",
+                        systemImage: "exclamationmark.triangle",
+                        description: Text("This bake session is no longer available.")
+                    )
+                    Spacer()
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("Close")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color("AccentColor"))
+                    .padding()
+                }
                 .background(Color("CreamBackground"))
             }
         }
@@ -260,8 +299,7 @@ struct BakeStepView: View {
                     .tint(Color("AccentColor"))
                 } else {
                     Button {
-                        bakeService.completeSession(sessionId)
-                        dismiss()
+                        completeBake(session: session)
                     } label: {
                         Label("Done", systemImage: "checkmark")
                     }
@@ -271,8 +309,7 @@ struct BakeStepView: View {
             } else {
                 Spacer()
                 Button {
-                    bakeService.completeSession(sessionId)
-                    dismiss()
+                    completeBake(session: session)
                 } label: {
                     Label("Done", systemImage: "checkmark")
                 }
@@ -282,6 +319,14 @@ struct BakeStepView: View {
         }
         .padding()
         .background(Color("FormRowBackground"))
+    }
+
+    private func completeBake(session: BakeSession) {
+        completedRecipeId = session.recipeId
+        completedSession = session
+        isCompleted = true
+        bakeService.completeSession(sessionId)
+        showingCompletionAlert = true
     }
 
     private func updateTimerDisplay(for step: Step) {
