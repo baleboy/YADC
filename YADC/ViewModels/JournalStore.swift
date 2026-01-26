@@ -61,6 +61,14 @@ final class JournalStore {
             .sorted { $0.createdAt > $1.createdAt }
     }
 
+    func ratingInfo(for recipeId: UUID) -> (average: Double, count: Int)? {
+        let recipeEntries = entries.filter { $0.recipeId == recipeId }
+        guard !recipeEntries.isEmpty else { return nil }
+        let total = recipeEntries.reduce(0) { $0 + $1.rating }
+        let average = Double(total) / Double(recipeEntries.count)
+        return (average: average, count: recipeEntries.count)
+    }
+
     // MARK: - Image Operations
 
     func addImage(_ image: UIImage, to entryId: UUID) {

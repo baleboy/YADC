@@ -10,10 +10,15 @@ import SwiftUI
 struct RecipeRowView: View {
     let recipe: Recipe
     @Environment(RecipeStore.self) private var store
+    @Environment(JournalStore.self) private var journalStore
     private let timerService = TimerService.shared
     private let imageService = ImageService.shared
 
     private let thumbnailWidth: CGFloat = 80
+
+    private var ratingInfo: (average: Double, count: Int)? {
+        journalStore.ratingInfo(for: recipe.id)
+    }
 
     var body: some View {
         HStack(spacing: 0) {
@@ -49,11 +54,27 @@ struct RecipeRowView: View {
                     .font(.subheadline)
                     .foregroundStyle(Color("TextSecondary"))
 
-                    if !recipe.steps.isEmpty {
-                        Text("\(recipe.steps.count) step\(recipe.steps.count == 1 ? "" : "s")")
-                            .font(.caption)
-                            .foregroundStyle(Color("TextTertiary"))
+                    HStack(spacing: 12) {
+                        if !recipe.steps.isEmpty {
+                            Text("\(recipe.steps.count) step\(recipe.steps.count == 1 ? "" : "s")")
+                                .foregroundStyle(Color("TextTertiary"))
+                        }
+
+                        if let rating = ratingInfo {
+                            HStack(spacing: 4) {
+                                Image(systemName: "star.fill")
+                                    .foregroundStyle(.yellow)
+                                Text(String(format: "%.1f", rating.average))
+                                    .foregroundStyle(Color("TextPrimary"))
+                                Text("(\(rating.count))")
+                                    .foregroundStyle(Color("TextTertiary"))
+                            }
+                        } else {
+                            Text("No bakes yet")
+                                .foregroundStyle(Color("TextTertiary"))
+                        }
                     }
+                    .font(.caption)
                 }
 
                 Spacer()
@@ -84,4 +105,5 @@ struct RecipeRowView: View {
         RecipeRowView(recipe: Recipe.default)
     }
     .environment(RecipeStore())
+    .environment(JournalStore())
 }

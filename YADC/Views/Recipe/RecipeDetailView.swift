@@ -29,6 +29,10 @@ struct RecipeDetailView: View {
         store.recipe(withId: recipe.id) ?? recipe
     }
 
+    private var ratingInfo: (average: Double, count: Int)? {
+        journalStore.ratingInfo(for: recipe.id)
+    }
+
     var body: some View {
         List {
             Section {
@@ -36,6 +40,33 @@ struct RecipeDetailView: View {
             }
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
+
+            Section {
+                if let rating = ratingInfo {
+                    HStack {
+                        HStack(spacing: 4) {
+                            ForEach(1...5, id: \.self) { star in
+                                Image(systemName: star <= Int(rating.average.rounded()) ? "star.fill" : "star")
+                                    .foregroundStyle(.yellow)
+                            }
+                        }
+                        Spacer()
+                        Text(String(format: "%.1f", rating.average))
+                            .font(.headline)
+                            .foregroundStyle(Color("TextPrimary"))
+                        Text("(\(rating.count) \(rating.count == 1 ? "bake" : "bakes"))")
+                            .foregroundStyle(Color("TextSecondary"))
+                    }
+                } else {
+                    HStack {
+                        Image(systemName: "star")
+                            .foregroundStyle(Color("TextTertiary"))
+                        Text("No bakes yet")
+                            .foregroundStyle(Color("TextTertiary"))
+                    }
+                }
+            }
+            .listRowBackground(Color("FormRowBackground"))
 
             Section {
                 Stepper("Number of balls: \(currentRecipe.numberOfBalls)",
