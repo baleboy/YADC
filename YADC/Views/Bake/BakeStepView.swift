@@ -64,8 +64,19 @@ struct BakeStepView: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel") {
-                            showingCancelAlert = true
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "xmark")
+                        }
+                    }
+                    ToolbarItem(placement: .primaryAction) {
+                        Menu {
+                            Button("Cancel Bake", role: .destructive) {
+                                showingCancelAlert = true
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
                         }
                     }
                 }
