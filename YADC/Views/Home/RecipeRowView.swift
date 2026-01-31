@@ -60,6 +60,11 @@ struct RecipeRowView: View {
                                 .foregroundStyle(Color("TextTertiary"))
                         }
 
+                        if let prepTime = recipe.formattedPreparationTime {
+                            Label(prepTime, systemImage: "clock")
+                                .foregroundStyle(Color("TextTertiary"))
+                        }
+
                         if let rating = ratingInfo {
                             HStack(spacing: 4) {
                                 Image(systemName: "star.fill")

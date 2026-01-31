@@ -64,6 +64,15 @@ struct RecipeDetailView: View {
                             .foregroundStyle(Color("TextTertiary"))
                     }
                 }
+
+                if let prepTime = currentRecipe.formattedPreparationTime {
+                    HStack {
+                        Label("Preparation time", systemImage: "clock")
+                        Spacer()
+                        Text(prepTime)
+                            .foregroundStyle(Color("TextSecondary"))
+                    }
+                }
             }
             .listRowBackground(Color("FormRowBackground"))
 

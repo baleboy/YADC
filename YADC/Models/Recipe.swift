@@ -89,6 +89,26 @@ struct Recipe: Identifiable, Codable, Equatable, Hashable {
         ingredients.filter { !$0.isFlour && !$0.isWater }
     }
 
+    /// Total preparation time in minutes (sum of all step timers)
+    var totalPreparationTimeMinutes: Int? {
+        let total = steps.compactMap { $0.waitingTimeMinutes }.reduce(0, +)
+        return total > 0 ? total : nil
+    }
+
+    /// Formatted preparation time string (e.g., "2h 30m" or "45 min")
+    var formattedPreparationTime: String? {
+        guard let minutes = totalPreparationTimeMinutes else { return nil }
+        if minutes >= 60 {
+            let hours = minutes / 60
+            let mins = minutes % 60
+            if mins == 0 {
+                return "\(hours)h"
+            }
+            return "\(hours)h \(mins)m"
+        }
+        return "\(minutes) min"
+    }
+
     static var `default`: Recipe {
         Recipe(
         name: "Pizza Dough",
