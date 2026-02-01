@@ -229,7 +229,7 @@ struct BakeStepView: View {
             } else {
                 Button {
                     timerService.requestNotificationPermissions()
-                    timerService.startTimer(for: step)
+                    timerService.startTimer(for: step, sessionId: sessionId)
                 } label: {
                     Label(formatDuration(step.waitingTimeMinutes ?? 0), systemImage: "play.fill")
                 }

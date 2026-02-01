@@ -22,6 +22,7 @@ final class TimerService {
         var id: UUID { stepId }
         let stepId: UUID
         let stepDescription: String
+        let sessionId: UUID?
         var startTime: Date
         var durationSeconds: Int
         var notificationId: String
@@ -62,7 +63,7 @@ final class TimerService {
 
     // MARK: - Timer Management
 
-    func startTimer(for step: Step) {
+    func startTimer(for step: Step, sessionId: UUID? = nil) {
         guard let minutes = step.waitingTimeMinutes, minutes > 0 else { return }
 
         let notificationId = "step-timer-\(step.id.uuidString)"
@@ -70,6 +71,7 @@ final class TimerService {
         let state = TimerState(
             stepId: step.id,
             stepDescription: step.description,
+            sessionId: sessionId,
             startTime: Date(),
             durationSeconds: minutes * 60,
             notificationId: notificationId
@@ -168,6 +170,13 @@ final class TimerService {
         content.title = "Timer Complete"
         content.body = "Step complete: \(state.stepDescription)"
         content.sound = .default
+
+        // Include session ID in userInfo for deep linking
+        var userInfo: [String: String] = ["stepId": state.stepId.uuidString]
+        if let sessionId = state.sessionId {
+            userInfo["sessionId"] = sessionId.uuidString
+        }
+        content.userInfo = userInfo
 
         let trigger = UNTimeIntervalNotificationTrigger(
             timeInterval: TimeInterval(state.durationSeconds),

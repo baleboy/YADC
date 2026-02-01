@@ -10,6 +10,7 @@ import SwiftUI
 struct BakeInProgressView: View {
     @Environment(RecipeStore.self) private var store
     @Environment(JournalStore.self) private var journalStore
+    @Environment(NavigationManager.self) private var navigationManager
     @State private var selectedSession: BakeSession?
     @State private var bakeService = BakeSessionService.shared
 
@@ -62,6 +63,21 @@ struct BakeInProgressView: View {
             .fullScreenCover(item: $selectedSession) { session in
                 BakeStepView(sessionId: session.id)
             }
+            .onChange(of: navigationManager.pendingBakeSessionId) { _, sessionId in
+                if let sessionId = sessionId,
+                   let session = bakeService.session(withId: sessionId) {
+                    selectedSession = session
+                    navigationManager.clearPendingNavigation()
+                }
+            }
+            .onAppear {
+                // Handle pending navigation when view appears (e.g., after tab switch)
+                if let sessionId = navigationManager.pendingBakeSessionId,
+                   let session = bakeService.session(withId: sessionId) {
+                    selectedSession = session
+                    navigationManager.clearPendingNavigation()
+                }
+            }
         }
     }
 
@@ -81,4 +97,5 @@ struct BakeInProgressView: View {
     BakeInProgressView()
         .environment(RecipeStore())
         .environment(JournalStore())
+        .environment(NavigationManager.shared)
 }
