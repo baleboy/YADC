@@ -85,8 +85,7 @@ struct CalculationEngineTests {
         #expect(water.weight > 438 && water.weight < 441)
     }
 
-    @Test(.disabled("Known issue: test fails when run with other tests but passes alone - needs investigation"))
-    func forwardCalculation_withPreFerment() {
+    @Test func forwardCalculation_withPreFerment() {
         // Create a poolish pre-ferment at 20% of total flour
         let metadata = PreFermentMetadata(type: .poolish, hydration: 100, yeastPercentage: 0.1)
         var poolish = Ingredient(
@@ -123,18 +122,23 @@ struct CalculationEngineTests {
             return
         }
 
-        // With 20% poolish:
-        // totalPercentage = 100 + 65 + 2.5 + 20 = 187.5%
-        // totalFlour = 1000 * 100 / 187.5 ≈ 533g
-        // poolish weight = 533 * 20 / 100 ≈ 107g
-        // poolish flour ≈ 53g (half, since 100% hydration)
-        // main flour = 533 - 53 ≈ 480g
-        // total water = 533 * 65% ≈ 347g
-        // main water = 347 - 53 ≈ 294g
+        // With 20% poolish (100% hydration, 0.1% yeast):
+        // Pre-ferment flour/water are part of total flour/water, not extra.
+        // Only yeast is extra: yeastRatio/totalRatio = 0.001/2.001 ≈ 0.0005
+        // totalPercentage ≈ 100 + 65 + 2.5 + 0.01 ≈ 167.51
+        // totalFlour = 1000 * 100 / 167.51 ≈ 597g
+        // poolish weight = 597 * 20 / 100 ≈ 119.4g
+        // poolish flour ≈ 59.7g, poolish water ≈ 59.7g
+        // main flour = 597 - 59.7 ≈ 537g
+        // total water = 597 * 65% ≈ 388g
+        // main water = 388 - 59.7 ≈ 328g
 
-        // Expected: flour ≈ 480g, water ≈ 294g (with some tolerance for floating point)
-        #expect(flour.weight > 450 && flour.weight < 510, "Expected flour.weight ≈ 480, got \(flour.weight)")
-        #expect(water.weight > 270 && water.weight < 320, "Expected water.weight ≈ 294, got \(water.weight)")
+        // Verify total adds up to ~1000g
+        let totalWeight = result.reduce(0) { $0 + $1.weight }
+        #expect(totalWeight > 995 && totalWeight < 1005, "Expected total ≈ 1000g, got \(totalWeight)")
+
+        #expect(flour.weight > 530 && flour.weight < 545, "Expected flour.weight ≈ 537, got \(flour.weight)")
+        #expect(water.weight > 320 && water.weight < 335, "Expected water.weight ≈ 328, got \(water.weight)")
     }
 
     // MARK: - Reverse Calculation Tests

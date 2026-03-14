@@ -18,12 +18,17 @@ struct CalculationEngine {
     ) -> [Ingredient] {
         let adjustedWeight = recipe.totalDoughWeight * (1 + doughResiduePercentage / 100)
 
-        // Total percentage = flour (100) + water (hydration) + other ingredients + pre-ferments
-        let otherPercentagesSum = recipe.otherIngredients.reduce(0) { $0 + $1.percentage }
-        let preFermentPercentagesSum = recipe.ingredients
+        // Total percentage = flour (100) + water (hydration) + other ingredients + pre-ferment yeast
+        // Pre-ferment flour and water are part of the total flour and water, not additional.
+        // Only the yeast portion of pre-ferments is extra beyond flour+water.
+        let otherPercentagesSum = recipe.otherIngredients.filter { !$0.isPreFerment }.reduce(0) { $0 + $1.percentage }
+        let preFermentYeastSum = recipe.ingredients
             .filter { $0.isPreFerment }
-            .reduce(0) { $0 + $1.percentage }
-        let totalPercentage = 100 + recipe.hydration + otherPercentagesSum + preFermentPercentagesSum
+            .reduce(0.0) { total, ingredient in
+                guard let metadata = ingredient.preFermentMetadata else { return total }
+                return total + ingredient.percentage * metadata.yeastRatio / metadata.totalRatio
+            }
+        let totalPercentage = 100 + recipe.hydration + otherPercentagesSum + preFermentYeastSum
 
         guard totalPercentage > 0 else { return recipe.ingredients }
 
