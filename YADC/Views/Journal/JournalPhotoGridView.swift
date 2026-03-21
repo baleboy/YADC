@@ -76,7 +76,7 @@ struct JournalPhotoGridView: View {
                 .aspectRatio(contentMode: .fill)
                 .frame(height: 100)
                 .clipped()
-                .cornerRadius(8)
+                .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.medium))
 
             if isEditable {
                 Button {
@@ -107,8 +107,8 @@ struct JournalPhotoGridView: View {
             .foregroundStyle(Color("TextSecondary"))
             .frame(height: 100)
             .frame(maxWidth: .infinity)
-            .background(Color("FormRowBackground"))
-            .cornerRadius(8)
+            .background(Color("SurfaceContainerHigh"))
+            .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.medium))
         }
     }
 }

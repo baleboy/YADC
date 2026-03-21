@@ -33,130 +33,235 @@ struct RecipeDetailView: View {
     }
 
     var body: some View {
-        List {
-            Section {
+        ScrollView {
+            VStack(spacing: 0) {
+                // Hero image
                 heroImageView
-            }
-            .listRowInsets(EdgeInsets())
-            .listRowBackground(Color.clear)
 
-            Section {
-                if let rating = ratingInfo {
-                    HStack {
-                        HStack(spacing: 4) {
-                            ForEach(1...5, id: \.self) { star in
-                                Image(systemName: star <= Int(rating.average.rounded()) ? "star.fill" : "star")
-                                    .foregroundStyle(.yellow)
+                // Content overlapping hero
+                VStack(spacing: 24) {
+                    // Title + rating card
+                    VStack(spacing: 16) {
+                        Text(currentRecipe.name)
+                            .font(AppFont.serifHeadline(28))
+                            .foregroundStyle(Color("TextPrimary"))
+                            .multilineTextAlignment(.center)
+
+                        // Rating + experience
+                        HStack(spacing: 0) {
+                            if let rating = ratingInfo {
+                                VStack(spacing: 4) {
+                                    HStack(spacing: 3) {
+                                        ForEach(1...5, id: \.self) { star in
+                                            Image(systemName: star <= Int(rating.average.rounded()) ? "star.fill" : "star")
+                                                .font(.system(size: 14))
+                                                .foregroundStyle(Color("AccentColor"))
+                                        }
+                                    }
+                                    Text("RATING")
+                                        .font(.system(size: 9, weight: .semibold))
+                                        .tracking(1.2)
+                                        .foregroundStyle(Color("TextSecondary"))
+                                }
+                                .frame(maxWidth: .infinity)
+
+                                Rectangle()
+                                    .fill(Color("OutlineVariant").opacity(0.3))
+                                    .frame(width: 1, height: 40)
+
+                                VStack(spacing: 4) {
+                                    Text("\(rating.count)")
+                                        .font(.system(size: 20, weight: .semibold))
+                                        .foregroundStyle(Color("TextPrimary"))
+                                    Text("BAKES")
+                                        .font(.system(size: 9, weight: .semibold))
+                                        .tracking(1.2)
+                                        .foregroundStyle(Color("TextSecondary"))
+                                }
+                                .frame(maxWidth: .infinity)
+                            } else {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "star")
+                                        .foregroundStyle(Color("TextTertiary"))
+                                    Text("No bakes yet")
+                                        .foregroundStyle(Color("TextTertiary"))
+                                }
+                                .frame(maxWidth: .infinity)
                             }
                         }
-                        Spacer()
-                        Text(String(format: "%.1f", rating.average))
-                            .font(.headline)
+
+                        if let prepTime = currentRecipe.formattedPreparationTime {
+                            HStack {
+                                Label("Preparation time", systemImage: "clock")
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color("TextSecondary"))
+                                Spacer()
+                                Text(prepTime)
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundStyle(Color("TextPrimary"))
+                            }
+                        }
+                    }
+                    .padding(20)
+                    .background(Color("SurfaceContainerLowest"))
+                    .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.default))
+                    .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+
+                    // Scaling section
+                    VStack(alignment: .leading, spacing: 16) {
+                        HStack {
+                            Text("Scaling")
+                                .font(AppFont.serifHeadline(22))
+                                .foregroundStyle(Color("TextPrimary"))
+                            Spacer()
+                            Text(currentRecipe.hydration.percentageFormatted + " Hydration")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 6)
+                                .background(Color("AccentColor"))
+                                .clipShape(Capsule())
+                        }
+
+                        ThemedStepper(
+                            "Dough Balls",
+                            value: Binding(
+                                get: { currentRecipe.numberOfBalls },
+                                set: { store.updateNumberOfBalls(for: currentRecipe.id, count: $0) }
+                            ),
+                            in: 1...100
+                        )
+                    }
+                    .padding(20)
+                    .background(Color("SurfaceContainerLowest"))
+                    .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.default))
+                    .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+
+                    // Pre-ferment section
+                    if let preFerment = currentRecipe.ingredients.first(where: { $0.isPreFerment }) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Pre-ferment (\(preFerment.preFermentMetadata?.type.displayName ?? ""))")
+                                .sectionLabel()
+                                .padding(.leading, 4)
+
+                            VStack(spacing: 0) {
+                                ingredientTableRow(name: "Total", weight: store.displayWeight(preFerment.weight), unit: store.weightUnit)
+
+                                if let subIngredients = preFerment.subIngredients {
+                                    ForEach(subIngredients) { sub in
+                                        ingredientTableRow(name: sub.name, weight: store.displayWeight(sub.weight), unit: store.weightUnit, isSubItem: true)
+                                    }
+                                }
+                            }
+                            .background(Color("SurfaceContainerLowest"))
+                            .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.medium))
+                        }
+                    }
+
+                    // Main Dough ingredients
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("Main Dough")
+                                .font(AppFont.serifHeadline(22))
+                                .foregroundStyle(Color("TextPrimary"))
+                            Spacer()
+                            Text("WEIGHTS PER \(store.displayWeight(currentRecipe.weightPerBall).weightFormatted)\(store.weightUnit) BALL")
+                                .font(.system(size: 9, weight: .semibold))
+                                .tracking(1.0)
+                                .foregroundStyle(Color("TextSecondary"))
+                        }
+
+                        VStack(spacing: 0) {
+                            // Header
+                            HStack {
+                                Text("INGREDIENT")
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                Text("WEIGHT")
+                                    .frame(width: 80, alignment: .trailing)
+                            }
+                            .font(.system(size: 10, weight: .semibold))
+                            .tracking(1.0)
+                            .foregroundStyle(Color("TextSecondary"))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                            .background(Color("FormRowBackground"))
+
+                            // Ingredients
+                            ForEach(currentRecipe.ingredients.filter { !$0.isPreFerment }) { ingredient in
+                                ingredientTableRow(name: ingredient.name, weight: store.displayWeight(ingredient.weight), unit: store.weightUnit)
+                            }
+
+                            // Total row
+                            HStack {
+                                Text("Total Dough Weight")
+                                    .fontWeight(.semibold)
+                                Spacer()
+                                Text("\(store.displayWeight(currentRecipe.totalDoughWeight).weightFormatted) \(store.weightUnit)")
+                                    .fontWeight(.semibold)
+                            }
+                            .font(.subheadline)
                             .foregroundStyle(Color("TextPrimary"))
-                        Text("(\(rating.count) \(rating.count == 1 ? "bake" : "bakes"))")
-                            .foregroundStyle(Color("TextSecondary"))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .background(Color("AccentColor").opacity(0.06))
+                        }
+                        .background(Color("SurfaceContainerLowest"))
+                        .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.medium))
+                        .shadow(color: Color.black.opacity(0.03), radius: 4, x: 0, y: 1)
                     }
-                } else {
-                    HStack {
-                        Image(systemName: "star")
-                            .foregroundStyle(Color("TextTertiary"))
-                        Text("No bakes yet")
-                            .foregroundStyle(Color("TextTertiary"))
-                    }
-                }
 
-                if let prepTime = currentRecipe.formattedPreparationTime {
-                    HStack {
-                        Label("Preparation time", systemImage: "clock")
-                        Spacer()
-                        Text(prepTime)
-                            .foregroundStyle(Color("TextSecondary"))
-                    }
-                }
-            }
-            .listRowBackground(Color("FormRowBackground"))
+                    // Steps
+                    if !currentRecipe.steps.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Steps")
+                                .font(AppFont.serifHeadline(22))
+                                .foregroundStyle(Color("TextPrimary"))
 
-            Section {
-                Stepper("Number of balls: \(currentRecipe.numberOfBalls)",
-                        value: Binding(
-                            get: { currentRecipe.numberOfBalls },
-                            set: { store.updateNumberOfBalls(for: currentRecipe.id, count: $0) }
-                        ),
-                        in: 1...100)
-                .tint(Color("AccentColor"))
-                .listRowBackground(Color("FormRowBackground"))
-            }
+                            VStack(spacing: 0) {
+                                ForEach(Array(currentRecipe.steps.enumerated()), id: \.element.id) { index, step in
+                                    DetailStepRow(step: step, stepNumber: index + 1, store: store)
+                                        .padding(16)
 
-            if let preFerment = currentRecipe.ingredients.first(where: { $0.isPreFerment }) {
-                Section("Pre-ferment (\(preFerment.preFermentMetadata?.type.displayName ?? ""))") {
-                    DetailIngredientRow(
-                        name: "Total",
-                        weight: store.displayWeight(preFerment.weight),
-                        unit: store.weightUnit
-                    )
-                    .listRowBackground(Color("FormRowBackground"))
-
-                    if let subIngredients = preFerment.subIngredients {
-                        ForEach(subIngredients) { sub in
-                            DetailIngredientRow(
-                                name: "  \(sub.name)",
-                                weight: store.displayWeight(sub.weight),
-                                unit: store.weightUnit
-                            )
-                            .font(.caption)
-                            .listRowBackground(Color("FormRowBackground"))
+                                    if index < currentRecipe.steps.count - 1 {
+                                        Divider()
+                                            .foregroundStyle(Color("OutlineVariant").opacity(0.15))
+                                            .padding(.horizontal, 16)
+                                    }
+                                }
+                            }
+                            .background(Color("SurfaceContainerLowest"))
+                            .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.medium))
+                            .shadow(color: Color.black.opacity(0.03), radius: 4, x: 0, y: 1)
                         }
                     }
                 }
-            }
-
-            Section("Main Dough") {
-                ForEach(currentRecipe.ingredients.filter { !$0.isPreFerment }) { ingredient in
-                    DetailIngredientRow(
-                        name: ingredient.name,
-                        weight: store.displayWeight(ingredient.weight),
-                        unit: store.weightUnit
-                    )
-                    .listRowBackground(Color("FormRowBackground"))
-                }
-            }
-
-            Section {
-                HStack {
-                    Text("Total dough weight")
-                        .fontWeight(.medium)
-                    Spacer()
-                    Text("\(store.displayWeight(currentRecipe.totalDoughWeight).weightFormatted) \(store.weightUnit)")
-                        .fontWeight(.medium)
-                }
-                .listRowBackground(Color("FormRowBackground"))
-            }
-
-            if !currentRecipe.steps.isEmpty {
-                Section("Steps") {
-                    ForEach(Array(currentRecipe.steps.enumerated()), id: \.element.id) { index, step in
-                        DetailStepRow(step: step, stepNumber: index + 1, store: store)
-                            .listRowBackground(Color("FormRowBackground"))
-                    }
-                }
+                .padding(16)
+                .padding(.top, -32) // Overlap hero
             }
         }
-        .scrollContentBackground(.hidden)
         .background(Color("CreamBackground"))
-        .foregroundStyle(Color("TextPrimary"))
-        .navigationTitle(currentRecipe.name)
-        .navigationBarTitleDisplayMode(.large)
-        .toolbarBackground(Color("CreamBackground"), for: .navigationBar)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                HStack {
+                HStack(spacing: 8) {
                     Button {
                         showingScaleSheet = true
                     } label: {
                         Image(systemName: "flame.fill")
+                            .foregroundStyle(Color("AccentColor"))
                     }
-                    Button("Edit") {
+
+                    Button {
                         showingEditor = true
+                    } label: {
+                        Text("EDIT")
+                            .font(.system(size: 12, weight: .semibold))
+                            .tracking(0.8)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 6)
+                            .background(Color("AccentColor"))
+                            .clipShape(Capsule())
                     }
                 }
             }
@@ -210,16 +315,23 @@ struct RecipeDetailView: View {
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(height: 250)
+                    .frame(height: 300)
                     .clipped()
+                    .overlay(
+                        LinearGradient(
+                            colors: [Color("CreamBackground"), .clear, .clear],
+                            startPoint: .bottom,
+                            endPoint: .top
+                        )
+                    )
 
                 Button {
                     showingImageSourceSheet = true
                 } label: {
                     Image(systemName: "pencil.circle.fill")
                         .font(.title)
-                        .foregroundStyle(.white)
-                        .shadow(radius: 2)
+                        .foregroundStyle(.white.opacity(0.9))
+                        .shadow(color: .black.opacity(0.3), radius: 4)
                 }
                 .padding()
             }
@@ -234,13 +346,27 @@ struct RecipeDetailView: View {
                         .font(.headline)
                 }
                 .foregroundStyle(Color("TextSecondary"))
-                .frame(height: 150)
+                .frame(height: 180)
                 .frame(maxWidth: .infinity)
-                .background(Color("FormRowBackground"))
-                .cornerRadius(12)
+                .background(Color("SurfaceContainerHigh"))
+                .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.default))
             }
-            .padding()
+            .padding(16)
         }
+    }
+
+    private func ingredientTableRow(name: String, weight: Double, unit: String, isSubItem: Bool = false) -> some View {
+        HStack {
+            Text(name)
+                .font(isSubItem ? .caption : .subheadline)
+                .foregroundStyle(isSubItem ? Color("TextSecondary") : Color("TextPrimary"))
+            Spacer()
+            Text("\(weight.weightFormatted) \(unit)")
+                .font(isSubItem ? .caption : .subheadline)
+                .foregroundStyle(Color("TextSecondary"))
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
     }
 }
 
@@ -289,9 +415,11 @@ struct DetailStepRow: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top) {
                 Text("\(stepNumber).")
-                    .foregroundStyle(Color("TextSecondary"))
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color("AccentColor"))
                     .frame(width: 24, alignment: .leading)
                 Text(step.description)
+                    .foregroundStyle(Color("TextPrimary"))
             }
 
             HStack(spacing: 16) {
@@ -305,24 +433,32 @@ struct DetailStepRow: View {
                                     .monospacedDigit()
                                     .foregroundStyle(timerIsPaused ? Color.secondary : Color("AccentColor"))
 
+                                Spacer()
+
                                 if timerIsPaused {
                                     Button {
                                         timerService.resumeTimer(for: step.id)
                                     } label: {
                                         Image(systemName: "play.fill")
                                             .font(.caption)
+                                            .foregroundStyle(.white)
+                                            .frame(width: 28, height: 28)
+                                            .background(Color("AccentColor"))
+                                            .clipShape(Circle())
                                     }
-                                    .buttonStyle(.bordered)
-                                    .tint(Color("AccentColor"))
+                                    .buttonStyle(.plain)
                                 } else {
                                     Button {
                                         timerService.pauseTimer(for: step.id)
                                     } label: {
                                         Image(systemName: "pause.fill")
                                             .font(.caption)
+                                            .foregroundStyle(Color("TextSecondary"))
+                                            .frame(width: 28, height: 28)
+                                            .background(Color("SecondaryContainer"))
+                                            .clipShape(Circle())
                                     }
-                                    .buttonStyle(.bordered)
-                                    .tint(Color("TextSecondary"))
+                                    .buttonStyle(.plain)
                                 }
 
                                 Button {
@@ -330,9 +466,12 @@ struct DetailStepRow: View {
                                 } label: {
                                     Image(systemName: "stop.fill")
                                         .font(.caption)
+                                        .foregroundStyle(Color("TextTertiary"))
+                                        .frame(width: 28, height: 28)
+                                        .background(Color("SurfaceContainerHigh"))
+                                        .clipShape(Circle())
                                 }
-                                .buttonStyle(.bordered)
-                                .tint(Color("TextTertiary"))
+                                .buttonStyle(.plain)
                             }
 
                             ProgressView(value: progress)
@@ -344,10 +483,14 @@ struct DetailStepRow: View {
                             timerService.startTimer(for: step)
                         } label: {
                             Label(formatDuration(step.waitingTimeMinutes!), systemImage: "play.fill")
-                                .font(.caption)
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 7)
+                                .background(Color("AccentColor"))
+                                .clipShape(Capsule())
                         }
-                        .buttonStyle(.bordered)
-                        .tint(Color("AccentColor"))
+                        .buttonStyle(.plain)
                     }
                 }
 
@@ -361,7 +504,6 @@ struct DetailStepRow: View {
                 }
             }
         }
-        .padding(.vertical, 4)
         .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
             if timerIsActive {
                 timerService.updateTimers()

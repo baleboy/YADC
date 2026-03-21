@@ -24,42 +24,83 @@ struct BakeInProgressView: View {
                         description: Text("Start a bake from any recipe to track your progress here.")
                     )
                 } else {
-                    List {
-                        if bakeService.hasActiveSessions {
-                            Section("In Progress") {
-                                ForEach(bakeService.allSessions) { session in
-                                    ActiveBakeRowView(session: session)
-                                        .listRowBackground(Color("FormRowBackground"))
-                                        .onTapGesture {
-                                            selectedSession = session
-                                        }
-                                }
-                                .onDelete(perform: deleteSessions)
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 24) {
+                            // Header
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Bakes")
+                                    .font(AppFont.serifHeadline(34))
+                                    .foregroundStyle(Color("TextPrimary"))
+                                Text("Track your baking sessions")
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color("TextSecondary"))
                             }
-                        }
+                            .padding(.horizontal)
 
-                        if !journalStore.entries.isEmpty {
-                            Section("Completed") {
-                                ForEach(journalStore.sortedEntries) { entry in
-                                    NavigationLink(value: entry) {
-                                        JournalRowView(entry: entry)
+                            if bakeService.hasActiveSessions {
+                                VStack(alignment: .leading, spacing: 10) {
+                                    Text("IN PROGRESS")
+                                        .sectionLabel()
+                                        .padding(.leading, 20)
+
+                                    VStack(spacing: 0) {
+                                        ForEach(Array(bakeService.allSessions.enumerated()), id: \.element.id) { index, session in
+                                            Button {
+                                                selectedSession = session
+                                            } label: {
+                                                ActiveBakeRowView(session: session)
+                                            }
+                                            .buttonStyle(.plain)
+
+                                            if index < bakeService.allSessions.count - 1 {
+                                                Divider()
+                                                    .padding(.leading, 16)
+                                            }
+                                        }
                                     }
-                                    .listRowInsets(EdgeInsets())
-                                    .listRowBackground(Color("FormRowBackground"))
+                                    .background(Color("FormRowBackground"))
+                                    .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.default))
+                                    .shadow(color: Color.black.opacity(0.03), radius: 4, x: 0, y: 1)
+                                    .padding(.horizontal)
                                 }
-                                .onDelete(perform: deleteEntries)
+                            }
+
+                            if !journalStore.entries.isEmpty {
+                                VStack(alignment: .leading, spacing: 10) {
+                                    Text("COMPLETED")
+                                        .sectionLabel()
+                                        .padding(.leading, 20)
+
+                                    VStack(spacing: 12) {
+                                        ForEach(journalStore.sortedEntries) { entry in
+                                            NavigationLink(value: entry) {
+                                                JournalRowView(entry: entry)
+                                            }
+                                            .buttonStyle(.plain)
+                                        }
+                                    }
+                                    .padding(.horizontal)
+                                }
                             }
                         }
+                        .padding(.top, 8)
+                        .padding(.bottom, 100)
                     }
-                    .scrollContentBackground(.hidden)
                 }
             }
             .background(Color("CreamBackground"))
             .navigationTitle("Bakes")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Autolyse")
+                        .font(AppFont.serifHeadline(18))
+                        .foregroundStyle(Color("AccentColor"))
+                }
+            }
             .navigationDestination(for: JournalEntry.self) { entry in
                 JournalEntryDetailView(entry: entry)
             }
-            .toolbarBackground(Color("CreamBackground"), for: .navigationBar)
             .fullScreenCover(item: $selectedSession) { session in
                 BakeStepView(sessionId: session.id)
             }
@@ -71,7 +112,6 @@ struct BakeInProgressView: View {
                 }
             }
             .onAppear {
-                // Handle pending navigation when view appears (e.g., after tab switch)
                 if let sessionId = navigationManager.pendingBakeSessionId,
                    let session = bakeService.session(withId: sessionId) {
                     selectedSession = session
@@ -79,17 +119,6 @@ struct BakeInProgressView: View {
                 }
             }
         }
-    }
-
-    private func deleteSessions(at offsets: IndexSet) {
-        let sessions = bakeService.allSessions
-        for index in offsets {
-            bakeService.cancelSession(sessions[index].id)
-        }
-    }
-
-    private func deleteEntries(at offsets: IndexSet) {
-        journalStore.deleteEntries(at: offsets)
     }
 }
 

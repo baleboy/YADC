@@ -24,13 +24,10 @@ struct RecipeEditorView: View {
     @State private var selectedTab: EditorTab = .percentage
     @State private var showingAddStep = false
 
-    /// For new recipes, specify the initial mode. For editing, mode is always forward.
     init(recipe: Recipe?, initialMode: CalculatorMode = .forward) {
         self.originalRecipe = recipe
-        // When editing an existing recipe, always use forward mode
         self.initialMode = (recipe != nil ? .forward : initialMode)
         _viewModel = State(initialValue: RecipeViewModel(recipe: recipe))
-        // Set initial tab based on mode
         _selectedTab = State(initialValue: initialMode == .reverse && recipe == nil ? .weight : .percentage)
     }
 
@@ -38,18 +35,23 @@ struct RecipeEditorView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 // Recipe name field
-                HStack {
-                    TextField("Recipe Name", text: $viewModel.recipe.name)
-                        .font(.title2)
-                        .fontWeight(.semibold)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(originalRecipe == nil ? "New Recipe" : "Editor")
+                        .font(AppFont.serifHeadline(28))
                         .foregroundStyle(Color("TextPrimary"))
+
+                    TextField("Recipe Name", text: $viewModel.recipe.name)
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundStyle(Color("TextPrimary"))
+                        .padding(12)
+                        .background(Color("SurfaceContainerHigh"))
+                        .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.medium))
                 }
-                .padding()
+                .padding(16)
                 .background(Color("CreamBackground"))
 
-                // Tab bar - show only relevant mode tab based on initialMode
+                // Tab bar
                 TabView(selection: $selectedTab) {
-                    // Show percentage tab for forward mode or when editing existing recipes
                     if initialMode == .forward {
                         PercentageModeView()
                             .tabItem {
@@ -58,7 +60,6 @@ struct RecipeEditorView: View {
                             .tag(EditorTab.percentage)
                     }
 
-                    // Show weight tab only for new recipes in reverse mode
                     if initialMode == .reverse && originalRecipe == nil {
                         WeightModeView()
                             .tabItem {
@@ -84,16 +85,14 @@ struct RecipeEditorView: View {
                 .toolbarBackground(.visible, for: .tabBar)
             }
             .background(Color("CreamBackground"))
-            .navigationTitle(originalRecipe == nil ? "New Recipe" : "Edit Recipe")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(Color("CreamBackground"), for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         viewModel.discardChanges()
                         dismiss()
                     }
+                    .foregroundStyle(Color("TextSecondary"))
                 }
                 ToolbarItem(placement: .principal) {
                     if selectedTab == .steps {
@@ -115,13 +114,25 @@ struct RecipeEditorView: View {
                             }
                         } label: {
                             Text("Save")
-                                .fontWeight(.semibold)
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 7)
+                                .background(Color("AccentColor"))
+                                .clipShape(Capsule())
                         }
                     } else {
-                        Button("Save") {
+                        Button {
                             saveAndDismiss()
+                        } label: {
+                            Text("Save")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 7)
+                                .background(Color("AccentColor"))
+                                .clipShape(Capsule())
                         }
-                        .fontWeight(.semibold)
                     }
                 }
             }
@@ -132,7 +143,6 @@ struct RecipeEditorView: View {
         }
         .onAppear {
             viewModel.store = store
-            // Set mode once based on initialMode
             if initialMode == .reverse {
                 viewModel.switchToReverseMode()
             } else {

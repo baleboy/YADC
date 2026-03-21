@@ -10,58 +10,101 @@ import SwiftUI
 struct RecipeListView: View {
     @Environment(RecipeStore.self) private var store
     @State private var showingEntryModePicker = false
+    @State private var searchText = ""
+
+    private var filteredRecipes: [Recipe] {
+        if searchText.isEmpty {
+            return store.recipes
+        }
+        return store.recipes.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+    }
 
     var body: some View {
         NavigationStack {
-            Group {
-                if store.recipes.isEmpty {
-                    ContentUnavailableView {
-                        Label("No Recipes", systemImage: "doc.text")
-                    } description: {
-                        Text("Tap the + button to create your first recipe")
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    // Header
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("My Recipes")
+                            .font(AppFont.serifHeadline(34))
+                            .foregroundStyle(Color("TextPrimary"))
+
+                        Text("\(store.recipes.count) recipe\(store.recipes.count == 1 ? "" : "s") in your collection")
+                            .font(.subheadline)
+                            .foregroundStyle(Color("TextSecondary"))
                     }
-                } else {
-                    List {
-                        ForEach(store.recipes) { recipe in
-                            NavigationLink(value: recipe) {
-                                RecipeRowView(recipe: recipe)
-                            }
-                            .listRowInsets(EdgeInsets())
-                            .listRowBackground(Color("FormRowBackground"))
+                    .padding(.horizontal)
+
+                    // Search bar
+                    HStack(spacing: 12) {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundStyle(Color("TextTertiary"))
+                        TextField("Search your library...", text: $searchText)
+                            .foregroundStyle(Color("TextPrimary"))
+                    }
+                    .padding(14)
+                    .background(Color("FormRowBackground"))
+                    .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.default))
+                    .padding(.horizontal)
+
+                    if filteredRecipes.isEmpty {
+                        ContentUnavailableView {
+                            Label(searchText.isEmpty ? "No Recipes" : "No Results", systemImage: "doc.text")
+                        } description: {
+                            Text(searchText.isEmpty ? "Tap the + button to create your first recipe" : "No recipes match your search")
                         }
-                        .onDelete(perform: deleteRecipes)
+                        .frame(maxWidth: .infinity, minHeight: 300)
+                    } else {
+                        // Recipe cards
+                        LazyVStack(spacing: 20) {
+                            ForEach(filteredRecipes) { recipe in
+                                NavigationLink(value: recipe) {
+                                    RecipeRowView(recipe: recipe)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(.horizontal)
                     }
-                    .scrollContentBackground(.hidden)
                 }
+                .padding(.top, 8)
+                .padding(.bottom, 100)
             }
             .background(Color("CreamBackground"))
-            .navigationTitle("Recipes")
+            .navigationTitle("Autolyse")
+            .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: Recipe.self) { recipe in
                 RecipeDetailView(recipe: recipe)
             }
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Autolyse")
+                        .font(AppFont.serifHeadline(18))
+                        .foregroundStyle(Color("AccentColor"))
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showingEntryModePicker = true
                     } label: {
                         Image(systemName: "plus")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 32, height: 32)
+                            .background(Color("AccentColor"))
+                            .clipShape(Circle())
                     }
                 }
             }
-            .toolbarBackground(Color("CreamBackground"), for: .navigationBar)
             .fullScreenCover(isPresented: $showingEntryModePicker) {
                 NewRecipeEntryModeView()
                     .environment(store)
             }
         }
     }
-
-    private func deleteRecipes(at offsets: IndexSet) {
-        store.deleteRecipes(at: offsets)
-    }
 }
 
 #Preview {
     RecipeListView()
         .environment(RecipeStore())
+        .environment(JournalStore())
 }

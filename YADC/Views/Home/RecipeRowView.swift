@@ -14,101 +14,110 @@ struct RecipeRowView: View {
     private let timerService = TimerService.shared
     private let imageService = ImageService.shared
 
-    private let thumbnailWidth: CGFloat = 80
-
     private var ratingInfo: (average: Double, count: Int)? {
         journalStore.ratingInfo(for: recipe.id)
     }
 
     var body: some View {
-        HStack(spacing: 0) {
+        VStack(spacing: 0) {
+            // Hero image
             if recipe.hasImage,
                let image = imageService.loadImage(for: recipe.id) {
                 Image(uiImage: image)
                     .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: thumbnailWidth, height: thumbnailWidth)
+                    .aspectRatio(4/3, contentMode: .fill)
+                    .frame(height: 200)
                     .clipped()
             } else {
                 Rectangle()
-                    .fill(Color("FormRowBackground"))
-                    .frame(width: thumbnailWidth, height: thumbnailWidth)
+                    .fill(Color("SurfaceContainerHigh"))
+                    .frame(height: 140)
                     .overlay {
                         Image(systemName: "photo")
-                            .foregroundStyle(Color("TextTertiary"))
+                            .font(.largeTitle)
+                            .foregroundStyle(Color("TextTertiary").opacity(0.5))
                     }
             }
 
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(recipe.name)
-                        .font(.headline)
-                        .foregroundStyle(Color("TextPrimary"))
-
-                    HStack(spacing: 12) {
-                        Label("\(recipe.numberOfBalls)", systemImage: "circle.grid.2x2")
-                        Label("\(store.displayWeight(recipe.weightPerBall).weightFormatted) \(store.weightUnit)", systemImage: "scalemass")
-                        Label(recipe.hydration.percentageFormatted, systemImage: "drop")
-                    }
-                    .labelStyle(.titleAndIcon)
-                    .font(.subheadline)
-                    .foregroundStyle(Color("TextSecondary"))
-
-                    HStack(spacing: 12) {
-                        if !recipe.steps.isEmpty {
-                            Text("\(recipe.steps.count) step\(recipe.steps.count == 1 ? "" : "s")")
-                                .foregroundStyle(Color("TextTertiary"))
-                        }
-
-                        if let prepTime = recipe.formattedPreparationTime {
-                            Label(prepTime, systemImage: "clock")
-                                .foregroundStyle(Color("TextTertiary"))
-                        }
-
-                        if let rating = ratingInfo {
-                            HStack(spacing: 4) {
-                                Image(systemName: "star.fill")
-                                    .foregroundStyle(.yellow)
-                                Text(String(format: "%.1f", rating.average))
-                                    .foregroundStyle(Color("TextPrimary"))
-                                Text("(\(rating.count))")
-                                    .foregroundStyle(Color("TextTertiary"))
-                            }
-                        } else {
-                            Text("No bakes yet")
-                                .foregroundStyle(Color("TextTertiary"))
-                        }
-                    }
-                    .font(.caption)
-                }
-
-                Spacer()
-
+            // Content
+            VStack(alignment: .leading, spacing: 10) {
+                // Timer badge overlay
                 if timerService.hasRunningTimers(for: recipe) {
                     let count = timerService.runningTimerCount(for: recipe)
                     HStack(spacing: 4) {
                         Image(systemName: "clock.fill")
-                        Text("\(count)")
-                            .fontWeight(.bold)
+                        Text("\(count) active")
+                            .fontWeight(.semibold)
                     }
-                    .font(.caption)
+                    .font(.caption2)
                     .foregroundStyle(.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.red)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Color("AccentColor"))
                     .clipShape(Capsule())
                 }
+
+                Text(recipe.name)
+                    .font(AppFont.serifHeadline(20))
+                    .foregroundStyle(Color("TextPrimary"))
+
+                // Stats row
+                HStack(spacing: 16) {
+                    statItem(value: recipe.hydration.percentageFormatted, label: "HYDRATION")
+                    statItem(value: "\(recipe.numberOfBalls)", label: "BALLS")
+                    statItem(value: "\(store.displayWeight(recipe.weightPerBall).weightFormatted)\(store.weightUnit)", label: "PER BALL")
+                }
+
+                // Bottom row: steps, prep time, rating
+                HStack(spacing: 12) {
+                    if !recipe.steps.isEmpty {
+                        Label("\(recipe.steps.count) step\(recipe.steps.count == 1 ? "" : "s")", systemImage: "list.number")
+                    }
+
+                    if let prepTime = recipe.formattedPreparationTime {
+                        Label(prepTime, systemImage: "clock")
+                    }
+
+                    Spacer()
+
+                    if let rating = ratingInfo {
+                        HStack(spacing: 3) {
+                            Image(systemName: "star.fill")
+                                .foregroundStyle(Color("AccentColor"))
+                            Text(String(format: "%.1f", rating.average))
+                                .fontWeight(.medium)
+                        }
+                    }
+                }
+                .font(.caption)
+                .foregroundStyle(Color("TextSecondary"))
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .padding(16)
+        }
+        .background(Color("SurfaceContainerLowest"))
+        .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.default))
+        .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+    }
+
+    private func statItem(value: String, label: String) -> some View {
+        VStack(spacing: 2) {
+            Text(value)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Color("TextPrimary"))
+            Text(label)
+                .font(.system(size: 9, weight: .medium))
+                .tracking(1.0)
+                .foregroundStyle(Color("TextSecondary").opacity(0.7))
         }
     }
 }
 
 #Preview {
-    List {
+    ScrollView {
         RecipeRowView(recipe: Recipe.default)
+            .padding()
     }
+    .background(Color("CreamBackground"))
     .environment(RecipeStore())
     .environment(JournalStore())
 }

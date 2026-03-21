@@ -32,69 +32,88 @@ struct JournalEntryDetailView: View {
     }
 
     var body: some View {
-        List {
-            if !images.isEmpty {
-                Section {
+        ScrollView {
+            VStack(spacing: 24) {
+                // Photo gallery
+                if !images.isEmpty {
                     ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
+                        HStack(spacing: 10) {
                             ForEach(Array(images.enumerated()), id: \.offset) { _, image in
                                 Image(uiImage: image)
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
-                                    .frame(width: 250, height: 200)
-                                    .clipped()
-                                    .cornerRadius(12)
+                                    .frame(width: 280, height: 210)
+                                    .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.default))
                             }
                         }
                         .padding(.horizontal)
                     }
                 }
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
-            }
 
-            Section {
-                HStack {
-                    Text("Recipe")
-                    Spacer()
+                VStack(spacing: 20) {
+                    // Date
+                    Text(formattedDate.uppercased())
+                        .font(.system(size: 11, weight: .semibold))
+                        .tracking(1.2)
+                        .foregroundStyle(Color("AccentColor"))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    // Recipe name
                     Text(recipeName)
-                        .foregroundStyle(Color("TextSecondary"))
-                }
-                .listRowBackground(Color("FormRowBackground"))
+                        .font(AppFont.serifHeadline(28))
+                        .foregroundStyle(Color("TextPrimary"))
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
-                HStack {
-                    Text("Date")
-                    Spacer()
-                    Text(formattedDate)
-                        .foregroundStyle(Color("TextSecondary"))
-                }
-                .listRowBackground(Color("FormRowBackground"))
+                    // Rating
+                    HStack {
+                        Text("Rating")
+                            .foregroundStyle(Color("TextSecondary"))
+                        Spacer()
+                        StarRatingDisplayView(rating: currentEntry.rating)
+                    }
+                    .padding(16)
+                    .background(Color("FormRowBackground"))
+                    .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.medium))
 
-                HStack {
-                    Text("Rating")
-                    Spacer()
-                    StarRatingDisplayView(rating: currentEntry.rating)
+                    // Notes
+                    if !currentEntry.notes.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("NOTES")
+                                .sectionLabel()
+
+                            Text(currentEntry.notes)
+                                .font(AppFont.serifItalic(16))
+                                .foregroundStyle(Color("TextPrimary"))
+                                .lineSpacing(6)
+                                .padding(16)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color("TertiaryFixed").opacity(0.3))
+                                .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.medium))
+                        }
+                    }
                 }
-                .listRowBackground(Color("FormRowBackground"))
+                .padding(.horizontal)
             }
-
-            if !currentEntry.notes.isEmpty {
-                Section("Notes") {
-                    Text(currentEntry.notes)
-                        .listRowBackground(Color("FormRowBackground"))
-                }
-            }
+            .padding(.top, 8)
+            .padding(.bottom, 40)
         }
-        .scrollContentBackground(.hidden)
         .background(Color("CreamBackground"))
         .foregroundStyle(Color("TextPrimary"))
         .navigationTitle("Journal Entry")
-        .navigationBarTitleDisplayMode(.large)
-        .toolbarBackground(Color("CreamBackground"), for: .navigationBar)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Edit") {
+                Button {
                     showingEditor = true
+                } label: {
+                    Text("EDIT")
+                        .font(.system(size: 12, weight: .semibold))
+                        .tracking(0.8)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 6)
+                        .background(Color("AccentColor"))
+                        .clipShape(Capsule())
                 }
             }
         }

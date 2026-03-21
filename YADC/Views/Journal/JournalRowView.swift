@@ -12,8 +12,6 @@ struct JournalRowView: View {
     @Environment(JournalStore.self) private var journalStore
     @Environment(RecipeStore.self) private var recipeStore
 
-    private let thumbnailWidth: CGFloat = 80
-
     private var recipeName: String {
         recipeStore.recipe(withId: entry.recipeId)?.name ?? "Deleted Recipe"
     }
@@ -21,54 +19,64 @@ struct JournalRowView: View {
     private var formattedDate: String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
-        formatter.timeStyle = .short
         return formatter.string(from: entry.createdAt)
     }
 
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 14) {
+            // Image
             if entry.photoCount > 0,
                let image = journalStore.loadThumbnail(for: entry.id) {
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(width: thumbnailWidth, height: thumbnailWidth)
-                    .clipped()
+                    .frame(width: 80, height: 80)
+                    .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.medium))
             } else {
-                Rectangle()
-                    .fill(Color("FormRowBackground"))
-                    .frame(width: thumbnailWidth, height: thumbnailWidth)
+                RoundedRectangle(cornerRadius: AppCornerRadius.medium)
+                    .fill(Color("SurfaceContainerHigh"))
+                    .frame(width: 80, height: 80)
                     .overlay {
                         Image(systemName: "book.pages")
-                            .foregroundStyle(Color("TextTertiary"))
+                            .font(.title3)
+                            .foregroundStyle(Color("TextTertiary").opacity(0.5))
                     }
             }
 
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(recipeName)
-                        .font(.headline)
-                        .foregroundStyle(Color("TextPrimary"))
+            // Content
+            VStack(alignment: .leading, spacing: 6) {
+                Text(formattedDate.uppercased())
+                    .font(.system(size: 10, weight: .semibold))
+                    .tracking(1.0)
+                    .foregroundStyle(Color("AccentColor"))
 
-                    Text(formattedDate)
-                        .font(.subheadline)
+                Text(recipeName)
+                    .font(AppFont.serifHeadline(18))
+                    .foregroundStyle(Color("TextPrimary"))
+
+                StarRatingDisplayView(rating: entry.rating)
+
+                if !entry.notes.isEmpty {
+                    Text(entry.notes)
+                        .font(AppFont.serifItalic(13))
                         .foregroundStyle(Color("TextSecondary"))
-
-                    StarRatingDisplayView(rating: entry.rating)
+                        .lineLimit(2)
                 }
-
-                Spacer()
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+
+            Spacer()
         }
+        .padding(14)
+        .background(Color("FormRowBackground"))
+        .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.default))
+        .shadow(color: Color.black.opacity(0.03), radius: 4, x: 0, y: 1)
     }
 }
 
 #Preview {
-    List {
-        JournalRowView(entry: JournalEntry(recipeId: UUID(), rating: 4))
-    }
-    .environment(JournalStore())
-    .environment(RecipeStore())
+    JournalRowView(entry: JournalEntry(recipeId: UUID(), rating: 4))
+        .padding()
+        .background(Color("CreamBackground"))
+        .environment(JournalStore())
+        .environment(RecipeStore())
 }

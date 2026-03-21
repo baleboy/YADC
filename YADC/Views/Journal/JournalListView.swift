@@ -20,30 +20,50 @@ struct JournalListView: View {
                         Text("Add entries from the recipe detail view")
                     }
                 } else {
-                    List {
-                        ForEach(journalStore.sortedEntries) { entry in
-                            NavigationLink(value: entry) {
-                                JournalRowView(entry: entry)
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 24) {
+                            // Header
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("The Artisan's Ledger")
+                                    .font(AppFont.serifItalic(16))
+                                    .foregroundStyle(Color("BrownDark"))
+
+                                Text("Your Baking Journey")
+                                    .font(AppFont.serifHeadline(34))
+                                    .foregroundStyle(Color("TextPrimary"))
                             }
-                            .listRowInsets(EdgeInsets())
-                            .listRowBackground(Color("FormRowBackground"))
+                            .padding(.horizontal)
+
+                            // Entries
+                            LazyVStack(spacing: 12) {
+                                ForEach(journalStore.sortedEntries) { entry in
+                                    NavigationLink(value: entry) {
+                                        JournalRowView(entry: entry)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            .padding(.horizontal)
                         }
-                        .onDelete(perform: deleteEntries)
+                        .padding(.top, 8)
+                        .padding(.bottom, 100)
                     }
-                    .scrollContentBackground(.hidden)
                 }
             }
             .background(Color("CreamBackground"))
             .navigationTitle("Journal")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Autolyse")
+                        .font(AppFont.serifHeadline(18))
+                        .foregroundStyle(Color("AccentColor"))
+                }
+            }
             .navigationDestination(for: JournalEntry.self) { entry in
                 JournalEntryDetailView(entry: entry)
             }
-            .toolbarBackground(Color("CreamBackground"), for: .navigationBar)
         }
-    }
-
-    private func deleteEntries(at offsets: IndexSet) {
-        journalStore.deleteEntries(at: offsets)
     }
 }
 

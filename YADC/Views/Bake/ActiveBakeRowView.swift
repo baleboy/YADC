@@ -19,10 +19,10 @@ struct ActiveBakeRowView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text(session.recipeName)
-                    .font(.headline)
+                    .font(AppFont.serifHeadline(18))
                     .foregroundStyle(Color("TextPrimary"))
 
                 Spacer()
@@ -45,21 +45,26 @@ struct ActiveBakeRowView: View {
                     .lineLimit(2)
             }
 
-            HStack {
-                ProgressView(value: session.progress)
-                    .tint(Color("AccentColor"))
-
-                Text("\(Int(session.progress * 100))%")
-                    .font(.caption)
-                    .foregroundStyle(Color("TextSecondary"))
-                    .frame(width: 40, alignment: .trailing)
+            // Progress bar
+            HStack(spacing: 3) {
+                ForEach(0..<max(session.totalSteps, 1), id: \.self) { index in
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(index <= session.currentStepIndex ? Color("AccentColor") : Color("SurfaceContainerHighest"))
+                        .frame(height: 4)
+                }
             }
 
-            Text("Started \(session.startedAt.formatted(.relative(presentation: .named)))")
-                .font(.caption2)
-                .foregroundStyle(Color("TextTertiary"))
+            HStack {
+                Text("\(Int(session.progress * 100))% complete")
+                    .font(.caption)
+                    .foregroundStyle(Color("TextSecondary"))
+                Spacer()
+                Text(session.startedAt.formatted(.relative(presentation: .named)))
+                    .font(.caption2)
+                    .foregroundStyle(Color("TextTertiary"))
+            }
         }
-        .padding(.vertical, 8)
+        .padding(16)
         .contentShape(Rectangle())
     }
 }

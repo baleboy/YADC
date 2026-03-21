@@ -32,16 +32,22 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		255AFDA22EE61AAE00BEACA7 /* YADC */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = YADC;
 			sourceTree = "<group>";
 		};
 		255AFDB02EE61AB000BEACA7 /* YADCTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = YADCTests;
 			sourceTree = "<group>";
 		};
 		255AFDBA2EE61AB000BEACA7 /* YADCUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = YADCUITests;
 			sourceTree = "<group>";
 		};
@@ -111,8 +117,6 @@
 				255AFDA22EE61AAE00BEACA7 /* YADC */,
 			);
 			name = YADC;
-			packageProductDependencies = (
-			);
 			productName = YADC;
 			productReference = 255AFDA02EE61AAE00BEACA7 /* YADC.app */;
 			productType = "com.apple.product-type.application";
@@ -134,8 +138,6 @@
 				255AFDB02EE61AB000BEACA7 /* YADCTests */,
 			);
 			name = YADCTests;
-			packageProductDependencies = (
-			);
 			productName = YADCTests;
 			productReference = 255AFDAD2EE61AB000BEACA7 /* YADCTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -157,8 +159,6 @@
 				255AFDBA2EE61AB000BEACA7 /* YADCUITests */,
 			);
 			name = YADCUITests;
-			packageProductDependencies = (
-			);
 			productName = YADCUITests;
 			productReference = 255AFDB72EE61AB000BEACA7 /* YADCUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
@@ -400,6 +400,7 @@
 				DEVELOPMENT_TEAM = 8HG4D44UZQ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Autolyse;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Autolyse needs access to your camera to take photos of your baked goods.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Autolyse needs access to your photo library to select photos for your recipes.";
@@ -435,6 +436,7 @@
 				DEVELOPMENT_TEAM = 8HG4D44UZQ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Autolyse;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Autolyse needs access to your camera to take photos of your baked goods.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Autolyse needs access to your photo library to select photos for your recipes.";

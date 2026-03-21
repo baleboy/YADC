@@ -74,74 +74,95 @@ struct ScaleRecipeSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Recipe name
                     Text(recipe.name)
-                        .font(.headline)
-                }
+                        .font(AppFont.serifHeadline(24))
+                        .foregroundStyle(Color("TextPrimary"))
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
-                Section("Scaling Method") {
-                    Picker("Method", selection: $scalingMode) {
-                        ForEach(ScalingMode.allCases, id: \.self) { mode in
-                            Text(mode.rawValue).tag(mode)
+                    // Scaling method picker
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("SCALING METHOD")
+                            .sectionLabel()
+
+                        Picker("Method", selection: $scalingMode) {
+                            ForEach(ScalingMode.allCases, id: \.self) { mode in
+                                Text(mode.rawValue).tag(mode)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                    }
+
+                    // Controls
+                    VStack(spacing: 0) {
+                        switch scalingMode {
+                        case .ballCount:
+                            ThemedStepper("Dough Balls", value: $numberOfBalls, in: 1...100)
+                                .padding(16)
+                        case .multiplier:
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Text("Scale Factor")
+                                        .foregroundStyle(Color("TextPrimary"))
+                                    Spacer()
+                                    Text("\(scaleMultiplier, specifier: "%.1f")x")
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .foregroundStyle(Color("AccentColor"))
+                                }
+                                Slider(value: $scaleMultiplier, in: 0.5...3.0, step: 0.1)
+                                    .tint(Color("AccentColor"))
+                            }
+                            .padding(16)
                         }
                     }
-                    .pickerStyle(.segmented)
-                    .listRowBackground(Color("FormRowBackground"))
-                }
+                    .background(Color("FormRowBackground"))
+                    .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.default))
 
-                Section {
-                    switch scalingMode {
-                    case .ballCount:
-                        Stepper("Number of balls: \(numberOfBalls)", value: $numberOfBalls, in: 1...100)
-                            .listRowBackground(Color("FormRowBackground"))
-                    case .multiplier:
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Scale: \(scaleMultiplier, specifier: "%.1f")x")
-                            Slider(value: $scaleMultiplier, in: 0.5...3.0, step: 0.1)
-                                .tint(Color("AccentColor"))
+                    // Result
+                    VStack(spacing: 16) {
+                        VStack(spacing: 4) {
+                            Text("TOTAL DOUGH WEIGHT")
+                                .font(.system(size: 10, weight: .semibold))
+                                .tracking(1.2)
+                                .foregroundStyle(.white.opacity(0.8))
+                            Text("\(store.displayWeight(scaledTotalWeight).weightFormatted)\(store.weightUnit)")
+                                .font(AppFont.serifDisplay(36))
+                                .foregroundStyle(.white)
+
+                            if scalingMode == .multiplier {
+                                Text("\(scaledNumberOfBalls) balls")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundStyle(.white.opacity(0.7))
+                            }
                         }
-                        .listRowBackground(Color("FormRowBackground"))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 24)
+                        .background(
+                            LinearGradient(
+                                colors: [Color("AccentColor"), Color("PrimaryContainer")],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.default))
                     }
-                }
 
-                Section("Result") {
-                    HStack {
-                        Text("Total weight")
-                        Spacer()
-                        Text("\(store.displayWeight(scaledTotalWeight).weightFormatted) \(store.weightUnit)")
-                            .fontWeight(.semibold)
-                            .foregroundStyle(Color("AccentColor"))
-                    }
-                    .listRowBackground(Color("FormRowBackground"))
-
-                    if scalingMode == .multiplier {
-                        HStack {
-                            Text("Number of balls")
-                            Spacer()
-                            Text("\(scaledNumberOfBalls)")
-                                .foregroundStyle(Color("TextSecondary"))
-                        }
-                        .listRowBackground(Color("FormRowBackground"))
-                    }
-                }
-
-                Section {
+                    // Start button
                     Button {
                         startBake()
                     } label: {
-                        HStack {
-                            Spacer()
-                            Label("Start Baking", systemImage: "flame.fill")
+                        HStack(spacing: 8) {
+                            Image(systemName: "flame.fill")
+                            Text("Start Baking")
                                 .fontWeight(.semibold)
-                            Spacer()
                         }
                     }
-                    .listRowBackground(Color("AccentColor"))
-                    .foregroundStyle(.white)
+                    .buttonStyle(GradientPrimaryButtonStyle())
                 }
+                .padding(20)
             }
-            .scrollContentBackground(.hidden)
             .background(Color("CreamBackground"))
             .navigationTitle("Make It")
             .navigationBarTitleDisplayMode(.inline)

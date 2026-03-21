@@ -2,7 +2,7 @@
 //  ThemedComponents.swift
 //  YADC
 //
-//  Custom themed components for reliable color application
+//  Custom themed components for the Autolyse design system.
 //
 
 import SwiftUI
@@ -16,19 +16,6 @@ struct ThemedFormRowModifier: ViewModifier {
     }
 }
 
-struct ThemedTextFieldModifier: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-            .padding(8)
-            .background(Color("FormRowBackground"))
-            .foregroundStyle(Color("TextPrimary"))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color("TextTertiary"), lineWidth: 1)
-            )
-    }
-}
-
 extension View {
     func themedFormRow() -> some View {
         modifier(ThemedFormRowModifier())
@@ -36,14 +23,11 @@ extension View {
 
     func themedTextField() -> some View {
         self
-            .padding(8)
-            .background(Color("FormRowBackground"))
+            .padding(12)
+            .background(Color("SurfaceContainerHigh"))
             .foregroundStyle(Color("TextPrimary"))
             .tint(Color("AccentColor"))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color("TextTertiary"), lineWidth: 1)
-            )
+            .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.medium))
     }
 }
 
@@ -74,21 +58,24 @@ struct ThemedStepper: View {
 
             Spacer()
 
-            HStack(spacing: 0) {
+            HStack(spacing: 12) {
                 Button {
                     if value > range.lowerBound {
                         value = max(range.lowerBound, value - step)
                     }
                 } label: {
                     Image(systemName: "minus")
-                        .frame(width: 44, height: 32)
+                        .font(.system(size: 14, weight: .semibold))
+                        .frame(width: 36, height: 36)
                         .foregroundStyle(Color("TextPrimary"))
-                        .background(Color("FormRowBackground"))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color("TextTertiary"), lineWidth: 1)
-                        )
+                        .background(Color("SecondaryContainer"))
+                        .clipShape(Circle())
                 }
+
+                Text("\(value)")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(Color("TextPrimary"))
+                    .frame(minWidth: 28)
 
                 Button {
                     if value < range.upperBound {
@@ -96,13 +83,11 @@ struct ThemedStepper: View {
                     }
                 } label: {
                     Image(systemName: "plus")
-                        .frame(width: 44, height: 32)
-                        .foregroundStyle(Color("TextPrimary"))
-                        .background(Color("FormRowBackground"))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color("TextTertiary"), lineWidth: 1)
-                        )
+                        .font(.system(size: 14, weight: .semibold))
+                        .frame(width: 36, height: 36)
+                        .foregroundStyle(.white)
+                        .background(Color("AccentColor"))
+                        .clipShape(Circle())
                 }
             }
         }

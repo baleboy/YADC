@@ -27,7 +27,6 @@ struct BakeStepView: View {
     private var timerService: TimerService { .shared }
 
     private var session: BakeSession? {
-        // Use stored session if completed, otherwise get from service
         if isCompleted {
             return completedSession
         }
@@ -38,25 +37,22 @@ struct BakeStepView: View {
         NavigationStack {
             if let session = session {
                 VStack(spacing: 0) {
-                    // Progress header (only if there are steps)
+                    // Progress header
                     if session.totalSteps > 0 {
                         progressHeader(session: session)
                     }
 
                     ScrollView {
                         VStack(alignment: .leading, spacing: 24) {
-                            // Step content (only if there are steps)
                             if let currentStep = session.currentStep {
                                 stepContent(step: currentStep, stepNumber: session.currentStepIndex + 1)
                             }
 
-                            // Scaled ingredients summary
                             ingredientsSummary(session: session)
                         }
                         .padding()
                     }
 
-                    // Navigation footer
                     navigationFooter(session: session)
                 }
                 .background(Color("CreamBackground"))
@@ -68,15 +64,17 @@ struct BakeStepView: View {
                             dismiss()
                         } label: {
                             Image(systemName: "xmark")
+                                .foregroundStyle(Color("TextPrimary"))
                         }
                     }
                     ToolbarItem(placement: .primaryAction) {
-                        Menu {
-                            Button("Cancel Bake", role: .destructive) {
-                                showingCancelAlert = true
-                            }
+                        Button {
+                            showingCancelAlert = true
                         } label: {
-                            Image(systemName: "ellipsis.circle")
+                            Text("EXIT SESSION")
+                                .font(.system(size: 11, weight: .semibold))
+                                .tracking(0.8)
+                                .foregroundStyle(Color("AccentColor"))
                         }
                     }
                 }
@@ -129,10 +127,8 @@ struct BakeStepView: View {
                         dismiss()
                     } label: {
                         Text("Close")
-                            .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(Color("AccentColor"))
+                    .buttonStyle(GradientPrimaryButtonStyle())
                     .padding()
                 }
                 .background(Color("CreamBackground"))
@@ -142,27 +138,40 @@ struct BakeStepView: View {
 
     @ViewBuilder
     private func progressHeader(session: BakeSession) -> some View {
-        VStack(spacing: 8) {
-            Text("Step \(session.currentStepIndex + 1) of \(session.totalSteps)")
-                .font(.subheadline)
-                .foregroundStyle(Color("TextSecondary"))
+        VStack(spacing: 12) {
+            HStack {
+                Text("Step \(session.currentStepIndex + 1) of \(session.totalSteps)")
+                    .font(AppFont.serifHeadline(18))
+                    .foregroundStyle(Color("TextPrimary"))
+                Spacer()
+                Text("\(Int(session.progress * 100))% COMPLETE")
+                    .font(.system(size: 10, weight: .semibold))
+                    .tracking(1.0)
+                    .foregroundStyle(Color("TextSecondary"))
+            }
 
-            ProgressView(value: session.progress)
-                .tint(Color("AccentColor"))
+            // Segmented progress bar
+            HStack(spacing: 3) {
+                ForEach(0..<session.totalSteps, id: \.self) { index in
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(index <= session.currentStepIndex ? Color("AccentColor") : Color("SurfaceContainerHighest"))
+                        .frame(height: 6)
+                }
+            }
         }
-        .padding()
-        .background(Color("FormRowBackground"))
+        .padding(20)
     }
 
     @ViewBuilder
     private func stepContent(step: Step, stepNumber: Int) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 20) {
             Text(step.description)
-                .font(.title3)
+                .font(AppFont.serifHeadline(22))
                 .foregroundStyle(Color("TextPrimary"))
+                .lineSpacing(4)
 
             if step.hasTimer || step.temperatureCelsius != nil {
-                HStack(spacing: 20) {
+                VStack(spacing: 16) {
                     if step.hasTimer {
                         timerSection(step: step)
                     }
@@ -173,10 +182,10 @@ struct BakeStepView: View {
                 }
             }
         }
-        .padding()
+        .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color("FormRowBackground"))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.default))
     }
 
     @ViewBuilder
@@ -184,44 +193,65 @@ struct BakeStepView: View {
         let isActive = timerService.isTimerActive(for: step.id)
         let isPaused = timerService.isTimerPaused(for: step.id)
 
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(spacing: 16) {
             if isActive {
-                HStack(spacing: 12) {
-                    Image(systemName: "timer")
-                        .foregroundStyle(isPaused ? Color.secondary : Color("AccentColor"))
+                // Large timer display
+                Text(formatDuration(displayedMinutes))
+                    .font(AppFont.serifDisplay(56))
+                    .foregroundStyle(isPaused ? Color("TextTertiary") : Color("TextPrimary"))
+                    .frame(maxWidth: .infinity)
 
-                    Text(formatDuration(displayedMinutes))
-                        .font(.title2)
-                        .monospacedDigit()
-                        .foregroundStyle(isPaused ? Color.secondary : Color("AccentColor"))
+                // Controls
+                HStack(spacing: 20) {
+                    // Reset button
+                    Button {
+                        timerService.stopTimer(for: step.id)
+                    } label: {
+                        Image(systemName: "arrow.counterclockwise")
+                            .font(.system(size: 16))
+                            .foregroundStyle(Color("TextSecondary"))
+                            .frame(width: 44, height: 44)
+                            .background(Color("SecondaryContainer"))
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
 
-                    Spacer()
-
+                    // Play/Pause button
                     if isPaused {
                         Button {
                             timerService.resumeTimer(for: step.id)
                         } label: {
                             Image(systemName: "play.fill")
+                                .font(.system(size: 22))
+                                .foregroundStyle(.white)
+                                .frame(width: 64, height: 64)
+                                .background(
+                                    LinearGradient(
+                                        colors: [Color("AccentColor"), Color("PrimaryContainer")],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .clipShape(Circle())
+                                .shadow(color: Color("AccentColor").opacity(0.3), radius: 12, x: 0, y: 4)
                         }
-                        .buttonStyle(.bordered)
-                        .tint(Color("AccentColor"))
+                        .buttonStyle(.plain)
                     } else {
                         Button {
                             timerService.pauseTimer(for: step.id)
                         } label: {
                             Image(systemName: "pause.fill")
+                                .font(.system(size: 22))
+                                .foregroundStyle(.white)
+                                .frame(width: 64, height: 64)
+                                .background(Color("TextSecondary"))
+                                .clipShape(Circle())
                         }
-                        .buttonStyle(.bordered)
-                        .tint(Color("TextSecondary"))
+                        .buttonStyle(.plain)
                     }
 
-                    Button {
-                        timerService.stopTimer(for: step.id)
-                    } label: {
-                        Image(systemName: "stop.fill")
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(Color("TextTertiary"))
+                    // Spacer for symmetry
+                    Color.clear.frame(width: 44, height: 44)
                 }
 
                 ProgressView(value: timerProgress)
@@ -231,12 +261,30 @@ struct BakeStepView: View {
                     timerService.requestNotificationPermissions()
                     timerService.startTimer(for: step, sessionId: sessionId)
                 } label: {
-                    Label(formatDuration(step.waitingTimeMinutes ?? 0), systemImage: "play.fill")
+                    HStack(spacing: 10) {
+                        Image(systemName: "play.fill")
+                        Text("Start Timer  \(formatDuration(step.waitingTimeMinutes ?? 0))")
+                            .fontWeight(.semibold)
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        LinearGradient(
+                            colors: [Color("AccentColor"), Color("PrimaryContainer")],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.medium))
+                    .shadow(color: Color("AccentColor").opacity(0.2), radius: 8, x: 0, y: 4)
                 }
-                .buttonStyle(.bordered)
-                .tint(Color("AccentColor"))
+                .buttonStyle(.plain)
             }
         }
+        .padding(16)
+        .background(Color("SurfaceContainerHighest").opacity(0.4))
+        .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.medium))
     }
 
     @ViewBuilder
@@ -253,23 +301,30 @@ struct BakeStepView: View {
     private func ingredientsSummary(session: BakeSession) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Ingredients")
-                .font(.headline)
+                .font(AppFont.serifHeadline(20))
                 .foregroundStyle(Color("TextPrimary"))
 
-            VStack(spacing: 8) {
-                ForEach(session.scaledIngredients.filter { !$0.isPreFerment }) { ingredient in
+            VStack(spacing: 0) {
+                ForEach(Array(session.scaledIngredients.filter { !$0.isPreFerment }.enumerated()), id: \.element.id) { index, ingredient in
                     HStack {
-                        Text(ingredient.name)
-                            .foregroundStyle(Color("TextPrimary"))
+                        HStack(spacing: 10) {
+                            Circle()
+                                .fill(Color("AccentColor").opacity(0.3))
+                                .frame(width: 6, height: 6)
+                            Text(ingredient.name)
+                                .foregroundStyle(Color("TextPrimary"))
+                        }
                         Spacer()
                         Text("\(store.displayWeight(ingredient.weight).weightFormatted) \(store.weightUnit)")
                             .foregroundStyle(Color("TextSecondary"))
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
                 }
             }
-            .padding()
-            .background(Color("FormRowBackground"))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .background(Color("SurfaceContainerLowest"))
+            .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.medium))
+            .shadow(color: Color.black.opacity(0.03), radius: 4, x: 0, y: 1)
 
             HStack {
                 Text("Total")
@@ -279,57 +334,85 @@ struct BakeStepView: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(Color("AccentColor"))
             }
-            .padding()
-            .background(Color("FormRowBackground"))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(16)
+            .background(Color("AccentColor").opacity(0.06))
+            .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.medium))
         }
     }
 
     @ViewBuilder
     private func navigationFooter(session: BakeSession) -> some View {
-        HStack(spacing: 16) {
-            if session.totalSteps > 0 {
-                Button {
-                    bakeService.goToPreviousStep(for: sessionId)
-                } label: {
-                    Label("Previous", systemImage: "chevron.left")
-                }
-                .disabled(!session.hasPreviousStep)
-                .buttonStyle(.bordered)
-                .tint(Color("AccentColor"))
-
-                Spacer()
-
-                if session.hasNextStep {
+        VStack(spacing: 8) {
+            HStack(spacing: 16) {
+                if session.totalSteps > 0 {
                     Button {
-                        bakeService.advanceStep(for: sessionId)
+                        bakeService.goToPreviousStep(for: sessionId)
                     } label: {
-                        Label("Next", systemImage: "chevron.right")
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(session.hasPreviousStep ? Color("TextPrimary") : Color("TextTertiary"))
+                            .frame(width: 48, height: 48)
+                            .background(Color("SecondaryContainer"))
+                            .clipShape(Circle())
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(Color("AccentColor"))
+                    .disabled(!session.hasPreviousStep)
+                    .buttonStyle(.plain)
+
+                    Spacer()
+
+                    if session.hasNextStep {
+                        Button {
+                            bakeService.advanceStep(for: sessionId)
+                        } label: {
+                            HStack(spacing: 8) {
+                                Text("Next Step")
+                                    .fontWeight(.semibold)
+                                Image(systemName: "chevron.right")
+                            }
+                        }
+                        .buttonStyle(GradientPrimaryButtonStyle())
+                    } else {
+                        Button {
+                            completeBake(session: session)
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "checkmark")
+                                Text("Complete Bake")
+                                    .fontWeight(.semibold)
+                            }
+                        }
+                        .buttonStyle(GradientPrimaryButtonStyle())
+                    }
                 } else {
                     Button {
                         completeBake(session: session)
                     } label: {
-                        Label("Done", systemImage: "checkmark")
+                        HStack(spacing: 8) {
+                            Image(systemName: "checkmark")
+                            Text("Complete Bake")
+                                .fontWeight(.semibold)
+                        }
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.green)
+                    .buttonStyle(GradientPrimaryButtonStyle())
                 }
-            } else {
-                Spacer()
-                Button {
-                    completeBake(session: session)
-                } label: {
-                    Label("Done", systemImage: "checkmark")
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.green)
+            }
+
+            // Next step preview
+            if session.totalSteps > 0, session.hasNextStep,
+               session.currentStepIndex + 1 < session.totalSteps {
+                let nextStep = session.steps[session.currentStepIndex + 1]
+                Text("NEXT: \(nextStep.description.uppercased().prefix(40))")
+                    .font(.system(size: 9, weight: .medium))
+                    .tracking(0.8)
+                    .foregroundStyle(Color("TextTertiary"))
+                    .lineLimit(1)
             }
         }
-        .padding()
-        .background(Color("FormRowBackground"))
+        .padding(20)
+        .background(
+            Color("CreamBackground").opacity(0.9)
+                .background(.ultraThinMaterial)
+        )
     }
 
     private func completeBake(session: BakeSession) {
