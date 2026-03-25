@@ -22,30 +22,43 @@ struct RecipeListView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(spacing: 24) {
                     // Header
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("My Recipes")
-                            .font(AppFont.serifHeadline(34))
+                    HStack {
+                        Text("Autolyse")
+                            .font(AppFont.heading(26))
+                            .tracking(-0.5)
                             .foregroundStyle(Color("TextPrimary"))
 
-                        Text("\(store.recipes.count) recipe\(store.recipes.count == 1 ? "" : "s") in your collection")
-                            .font(.subheadline)
-                            .foregroundStyle(Color("TextSecondary"))
+                        Spacer()
+
+                        Button {
+                            showingEntryModePicker = true
+                        } label: {
+                            Image(systemName: "plus")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color("AccentColor"))
+                                .clipShape(Circle())
+                        }
                     }
-                    .padding(.horizontal)
+                    .padding(.horizontal, 20)
 
                     // Search bar
-                    HStack(spacing: 12) {
+                    HStack(spacing: 10) {
                         Image(systemName: "magnifyingglass")
+                            .font(.system(size: 15))
                             .foregroundStyle(Color("TextTertiary"))
-                        TextField("Search your library...", text: $searchText)
+                        TextField("Search recipes...", text: $searchText)
+                            .font(AppFont.body(15))
                             .foregroundStyle(Color("TextPrimary"))
                     }
-                    .padding(14)
+                    .padding(.horizontal, 14)
+                    .frame(height: 44)
                     .background(Color("FormRowBackground"))
-                    .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.default))
-                    .padding(.horizontal)
+                    .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.medium))
+                    .padding(.horizontal, 20)
 
                     if filteredRecipes.isEmpty {
                         ContentUnavailableView {
@@ -56,7 +69,7 @@ struct RecipeListView: View {
                         .frame(maxWidth: .infinity, minHeight: 300)
                     } else {
                         // Recipe cards
-                        LazyVStack(spacing: 20) {
+                        LazyVStack(spacing: 12) {
                             ForEach(filteredRecipes) { recipe in
                                 NavigationLink(value: recipe) {
                                     RecipeRowView(recipe: recipe)
@@ -64,36 +77,16 @@ struct RecipeListView: View {
                                 .buttonStyle(.plain)
                             }
                         }
-                        .padding(.horizontal)
+                        .padding(.horizontal, 20)
                     }
                 }
                 .padding(.top, 8)
                 .padding(.bottom, 100)
             }
             .background(Color("CreamBackground"))
-            .navigationTitle("Autolyse")
-            .navigationBarTitleDisplayMode(.inline)
+            .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: Recipe.self) { recipe in
                 RecipeDetailView(recipe: recipe)
-            }
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("Autolyse")
-                        .font(AppFont.serifHeadline(18))
-                        .foregroundStyle(Color("AccentColor"))
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showingEntryModePicker = true
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .frame(width: 32, height: 32)
-                            .background(Color("AccentColor"))
-                            .clipShape(Circle())
-                    }
-                }
             }
             .fullScreenCover(isPresented: $showingEntryModePicker) {
                 NewRecipeEntryModeView()

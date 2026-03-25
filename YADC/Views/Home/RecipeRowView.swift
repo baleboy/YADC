@@ -11,7 +11,6 @@ struct RecipeRowView: View {
     let recipe: Recipe
     @Environment(RecipeStore.self) private var store
     @Environment(JournalStore.self) private var journalStore
-    private let timerService = TimerService.shared
     private let imageService = ImageService.shared
 
     private var ratingInfo: (average: Double, count: Int)? {
@@ -19,96 +18,82 @@ struct RecipeRowView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Hero image
+        HStack(spacing: 14) {
+            // Thumbnail
             if recipe.hasImage,
                let image = imageService.loadImage(for: recipe.id) {
                 Image(uiImage: image)
                     .resizable()
-                    .aspectRatio(4/3, contentMode: .fill)
-                    .frame(height: 200)
-                    .clipped()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 80, height: 80)
+                    .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.medium))
             } else {
-                Rectangle()
-                    .fill(Color("SurfaceContainerHigh"))
-                    .frame(height: 140)
+                RoundedRectangle(cornerRadius: AppCornerRadius.medium)
+                    .fill(Color("FormRowBackground"))
+                    .frame(width: 80, height: 80)
                     .overlay {
                         Image(systemName: "photo")
-                            .font(.largeTitle)
+                            .font(.title2)
                             .foregroundStyle(Color("TextTertiary").opacity(0.5))
                     }
             }
 
             // Content
-            VStack(alignment: .leading, spacing: 10) {
-                // Timer badge overlay
-                if timerService.hasRunningTimers(for: recipe) {
-                    let count = timerService.runningTimerCount(for: recipe)
-                    HStack(spacing: 4) {
-                        Image(systemName: "clock.fill")
-                        Text("\(count) active")
-                            .fontWeight(.semibold)
-                    }
-                    .font(.caption2)
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(Color("AccentColor"))
-                    .clipShape(Capsule())
-                }
-
+            VStack(alignment: .leading, spacing: 4) {
                 Text(recipe.name)
-                    .font(AppFont.serifHeadline(20))
+                    .font(AppFont.body(16, weight: .semibold))
                     .foregroundStyle(Color("TextPrimary"))
 
-                // Stats row
-                HStack(spacing: 16) {
-                    statItem(value: recipe.hydration.percentageFormatted, label: "HYDRATION")
-                    statItem(value: "\(recipe.numberOfBalls)", label: "BALLS")
-                    statItem(value: "\(store.displayWeight(recipe.weightPerBall).weightFormatted)\(store.weightUnit)", label: "PER BALL")
-                }
+                Text(recipeSubtitle)
+                    .font(AppFont.body(13))
+                    .foregroundStyle(Color("TextSecondary"))
 
-                // Bottom row: steps, prep time, rating
-                HStack(spacing: 12) {
-                    if !recipe.steps.isEmpty {
-                        Label("\(recipe.steps.count) step\(recipe.steps.count == 1 ? "" : "s")", systemImage: "list.number")
-                    }
+                // Meta row: hydration badge + rating
+                HStack(spacing: 10) {
+                    // Hydration badge
+                    Text(recipe.hydration.percentageFormatted)
+                        .font(AppFont.caption(11, weight: .semibold))
+                        .foregroundStyle(Color("AccentColor"))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(Color("AccentGreenLight"))
+                        .clipShape(Capsule())
 
-                    if let prepTime = recipe.formattedPreparationTime {
-                        Label(prepTime, systemImage: "clock")
-                    }
-
-                    Spacer()
-
+                    // Rating + bake count
                     if let rating = ratingInfo {
-                        HStack(spacing: 3) {
+                        HStack(spacing: 4) {
                             Image(systemName: "star.fill")
-                                .foregroundStyle(Color("AccentColor"))
+                                .font(.system(size: 10))
+                                .foregroundStyle(Color("AccentCoral"))
                             Text(String(format: "%.1f", rating.average))
-                                .fontWeight(.medium)
+                                .font(AppFont.caption(12, weight: .medium))
+                                .foregroundStyle(Color("TextSecondary"))
+                            Text("·")
+                                .foregroundStyle(Color("TextTertiary"))
+                            Text("\(rating.count) bake\(rating.count == 1 ? "" : "s")")
+                                .font(AppFont.caption(12, weight: .medium))
+                                .foregroundStyle(Color("TextSecondary"))
                         }
                     }
                 }
-                .font(.caption)
-                .foregroundStyle(Color("TextSecondary"))
+                .padding(.top, 2)
             }
-            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .padding(.init(top: 10, leading: 10, bottom: 10, trailing: 14))
         .background(Color("SurfaceContainerLowest"))
         .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.default))
-        .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+        .shadow(color: Color(red: 0.1, green: 0.1, blue: 0.09).opacity(0.03), radius: 12, x: 0, y: 2)
     }
 
-    private func statItem(value: String, label: String) -> some View {
-        VStack(spacing: 2) {
-            Text(value)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(Color("TextPrimary"))
-            Text(label)
-                .font(.system(size: 9, weight: .medium))
-                .tracking(1.0)
-                .foregroundStyle(Color("TextSecondary").opacity(0.7))
+    private var recipeSubtitle: String {
+        let count = recipe.numberOfBalls
+        let weight = store.displayWeight(recipe.weightPerBall).weightFormatted
+        let unit = store.weightUnit
+        if count == 1 {
+            return "1 ball · \(weight)\(unit)"
         }
+        return "\(count) balls · \(weight)\(unit) each"
     }
 }
 

@@ -22,6 +22,19 @@ enum AppFont {
         // Fallback to system serif italic since we don't bundle NotoSerif-Italic
         .system(size: size, design: .serif).italic()
     }
+
+    // Design system sans-serif fonts (Outfit in design, system rounded as fallback)
+    static func heading(_ size: CGFloat) -> Font {
+        .system(size: size, weight: .semibold, design: .rounded)
+    }
+
+    static func body(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
+        .system(size: size, weight: weight, design: .rounded)
+    }
+
+    static func caption(_ size: CGFloat, weight: Font.Weight = .medium) -> Font {
+        .system(size: size, weight: weight, design: .rounded)
+    }
 }
 
 // MARK: - Corner Radius
@@ -51,7 +64,7 @@ struct ArtisanCardModifier: ViewModifier {
         content
             .background(Color("SurfaceContainerLowest"))
             .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.default))
-            .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+            .shadow(color: Color.black.opacity(0.04), radius: 12, x: 0, y: 2)
     }
 }
 
@@ -74,12 +87,12 @@ struct GradientPrimaryButtonStyle: ButtonStyle {
             .padding(.vertical, 18)
             .background(
                 LinearGradient(
-                    colors: [Color("AccentColor"), Color("PrimaryContainer")],
+                    colors: [Color("AccentColor"), Color("AccentColor").opacity(0.85)],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
-            .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.default))
+            .clipShape(RoundedRectangle(cornerRadius: 100))
             .shadow(color: Color("AccentColor").opacity(0.2), radius: 16, x: 0, y: 8)
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .animation(.spring(duration: 0.2), value: configuration.isPressed)
