@@ -13,91 +13,46 @@ struct BakeInProgressView: View {
     @Environment(NavigationManager.self) private var navigationManager
     @State private var selectedSession: BakeSession?
     @State private var bakeService = BakeSessionService.shared
+    @State private var selectedSegment: BakeSegment = .inProgress
+
+    enum BakeSegment: String, CaseIterable, CustomStringConvertible {
+        case inProgress = "In Progress"
+        case journal = "Journal"
+        var description: String { rawValue }
+    }
 
     var body: some View {
         NavigationStack {
-            Group {
-                if !bakeService.hasActiveSessions && journalStore.entries.isEmpty {
-                    ContentUnavailableView(
-                        "No Bakes Yet",
-                        systemImage: "flame",
-                        description: Text("Start a bake from any recipe to track your progress here.")
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Header
+                    Text("Bakes")
+                        .font(AppFont.heading(26))
+                        .tracking(-0.5)
+                        .foregroundStyle(Color("TextPrimary"))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 24)
+
+                    // Segmented control
+                    ArtisanSegmentedPicker(
+                        options: BakeSegment.allCases,
+                        selection: $selectedSegment
                     )
-                } else {
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 24) {
-                            // Header
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Bakes")
-                                    .font(AppFont.serifHeadline(34))
-                                    .foregroundStyle(Color("TextPrimary"))
-                                Text("Track your baking sessions")
-                                    .font(.subheadline)
-                                    .foregroundStyle(Color("TextSecondary"))
-                            }
-                            .padding(.horizontal)
+                    .padding(.horizontal, 24)
 
-                            if bakeService.hasActiveSessions {
-                                VStack(alignment: .leading, spacing: 10) {
-                                    Text("IN PROGRESS")
-                                        .sectionLabel()
-                                        .padding(.leading, 20)
-
-                                    VStack(spacing: 0) {
-                                        ForEach(Array(bakeService.allSessions.enumerated()), id: \.element.id) { index, session in
-                                            Button {
-                                                selectedSession = session
-                                            } label: {
-                                                ActiveBakeRowView(session: session)
-                                            }
-                                            .buttonStyle(.plain)
-
-                                            if index < bakeService.allSessions.count - 1 {
-                                                Divider()
-                                                    .padding(.leading, 16)
-                                            }
-                                        }
-                                    }
-                                    .background(Color("FormRowBackground"))
-                                    .clipShape(RoundedRectangle(cornerRadius: AppCornerRadius.default))
-                                    .shadow(color: Color.black.opacity(0.03), radius: 4, x: 0, y: 1)
-                                    .padding(.horizontal)
-                                }
-                            }
-
-                            if !journalStore.entries.isEmpty {
-                                VStack(alignment: .leading, spacing: 10) {
-                                    Text("COMPLETED")
-                                        .sectionLabel()
-                                        .padding(.leading, 20)
-
-                                    VStack(spacing: 12) {
-                                        ForEach(journalStore.sortedEntries) { entry in
-                                            NavigationLink(value: entry) {
-                                                JournalRowView(entry: entry)
-                                            }
-                                            .buttonStyle(.plain)
-                                        }
-                                    }
-                                    .padding(.horizontal)
-                                }
-                            }
-                        }
-                        .padding(.top, 8)
-                        .padding(.bottom, 100)
+                    // Content based on segment
+                    switch selectedSegment {
+                    case .inProgress:
+                        inProgressContent
+                    case .journal:
+                        journalContent
                     }
                 }
+                .padding(.top, 8)
+                .padding(.bottom, 100)
             }
             .background(Color("CreamBackground"))
-            .navigationTitle("Bakes")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("Autolyse")
-                        .font(AppFont.serifHeadline(18))
-                        .foregroundStyle(Color("AccentColor"))
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: JournalEntry.self) { entry in
                 JournalEntryDetailView(entry: entry)
             }
@@ -119,6 +74,71 @@ struct BakeInProgressView: View {
                 }
             }
         }
+    }
+
+    // MARK: - In Progress
+
+    private var inProgressContent: some View {
+        VStack(spacing: 12) {
+            if bakeService.hasActiveSessions {
+                ForEach(bakeService.allSessions) { session in
+                    Button {
+                        selectedSession = session
+                    } label: {
+                        ActiveBakeRowView(session: session)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            // Empty hint
+            if !bakeService.hasActiveSessions {
+                emptyHint
+            }
+        }
+        .padding(.horizontal, 24)
+    }
+
+    // MARK: - Journal
+
+    private var journalContent: some View {
+        VStack(spacing: 12) {
+            if journalStore.entries.isEmpty {
+                VStack(spacing: 8) {
+                    Image(systemName: "book.pages")
+                        .font(.system(size: 32))
+                        .foregroundStyle(Color("TextTertiary"))
+                    Text("No journal entries yet")
+                        .font(AppFont.caption(14, weight: .medium))
+                        .foregroundStyle(Color("TextTertiary"))
+                }
+                .padding(.vertical, 24)
+                .frame(maxWidth: .infinity)
+            } else {
+                ForEach(journalStore.sortedEntries) { entry in
+                    NavigationLink(value: entry) {
+                        JournalRowView(entry: entry)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(.horizontal, 24)
+    }
+
+    // MARK: - Empty Hint
+
+    private var emptyHint: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "frying.pan")
+                .font(.system(size: 32))
+                .foregroundStyle(Color("TextTertiary"))
+            Text("Start a bake from any recipe!")
+                .font(AppFont.caption(14, weight: .medium))
+                .foregroundStyle(Color("TextTertiary"))
+        }
+        .padding(.vertical, 24)
+        .frame(maxWidth: .infinity)
     }
 }
 
